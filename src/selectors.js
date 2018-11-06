@@ -20,7 +20,7 @@ selectors.inputs = createSelector(
     const nextInputs = {}
     const procIds = Object.keys({...wiresByDestProcId, ...prevInputs})
     for (let procId of procIds) {
-      nextInputs[procId] = _computeInputsForProc({
+      nextInputs[procId] = _selectInputsForProc({
         procId,
         incomingWires: wiresByDestProcId[procId],
         outputs,
@@ -31,30 +31,25 @@ selectors.inputs = createSelector(
   }
 )
 
-const _computeInputsForProc = ({procId, incomingWires, outputs, prevInputsForProc}) => {
+const _selectInputsForProc = ({procId, incomingWires, outputs, prevInputsForProc}) => {
   const nextInputsForProc = {}
-  const newestIncomingPackets = _computeNewestIncomingPackets({procId, incomingWires, outputs})
+  const newestIncomingPackets = _selectNewestIncomingPackets({procId, incomingWires, outputs})
   const allPortIds = Object.keys({...prevInputsForProc, ...newestIncomingPackets})
   for (let portId of allPortIds) {
-    let packet, isFresh
     if (portId in newestIncomingPackets) {
       const incomingPacket = newestIncomingPackets[portId]
       const prevPacket = _.get(prevInputsForProc[portId], 'packet')
-      isFresh = (
-        (!prevPacket)
-        || (incomingPacket.timestamp > prevPacket.timestamp)
-      )
-      packet = (isFresh) ? incomingPacket : prevPacket
-    } else { // not in incoming, has been removed
-      isFresh = true
-      packet = undefined
+      const isFresh = (!prevPacket) || (incomingPacket.idx > prevPacket.idx)
+      nextInputsForProc[portId] = {
+        isFresh,
+        packet: (isFresh) ? incomingPacket : prevPacket
+      }
     }
-    nextInputsForProc[portId] = { packet, isFresh }
   }
   return nextInputsForProc
 }
 
-const _computeNewestIncomingPackets = ({procId, incomingWires, outputs}) => {
+const _selectNewestIncomingPackets = ({procId, incomingWires, outputs}) => {
   const incomingWiresByPortId = _.groupBy(incomingWires, (wire) => wire.dest.portId)
   const newestIncomingPackets = _.mapValues(
     incomingWiresByPortId,
@@ -62,7 +57,7 @@ const _computeNewestIncomingPackets = ({procId, incomingWires, outputs}) => {
       const packets = wires.map((wire) => {
         return outputs[wire.src.procId][wire.src.portId].packet
       })
-      const newestPacket = _.maxBy(packets, 'timestamp')
+      const newestPacket = _.maxBy(packets, 'idx')
       return newestPacket
     }
   )

@@ -9,7 +9,7 @@ describe('selectors.inputs', () => {
       outputs: {
         'srcProc': {
           'port1': {
-            packet: {id: 'packet1', timestamp: 1},
+            packet: {id: 'packet1', idx: 1},
           }
         }
       },
@@ -38,7 +38,7 @@ describe('selectors.inputs', () => {
       outputs: {
         'srcProc': {
           'port1': {
-            packet: {id: 'packet1', timestamp: 1},
+            packet: {id: 'packet1', idx: 1},
           }
         }
       },
@@ -54,7 +54,7 @@ describe('selectors.inputs', () => {
         'port1': {
           packet: {
             ...state.outputs['srcProc']['port1'].packet,
-            timestamp: (state.outputs['srcProc']['port1'].packet.timestamp - 1),
+            idx: (state.outputs['srcProc']['port1'].packet.idx - 1),
           }
         }
       }
@@ -76,7 +76,7 @@ describe('selectors.inputs', () => {
       outputs: {
         'srcProc': {
           'port1': {
-            packet: {id: 'packet1', timestamp: 1},
+            packet: {id: 'packet1', idx: 1},
           }
         }
       },
@@ -92,7 +92,7 @@ describe('selectors.inputs', () => {
         'port1': {
           packet: {
             id: 'somePacketId',
-            timestamp: state.outputs['srcProc']['port1'].packet.timestamp,
+            idx: state.outputs['srcProc']['port1'].packet.idx,
           }
         }
       }
@@ -106,6 +106,59 @@ describe('selectors.inputs', () => {
         }
       }
     }
+    assert.deepEqual(actual, expected)
+  })
+
+  it('takes newest from multiple incoming', () => {
+    const state = {
+      outputs: {
+        'srcProc1': {
+          'port1': {
+            packet: {id: 'packet1', idx: 1},
+          }
+        },
+        'srcProc2': {
+          'port1': {
+            packet: {id: 'packet1', idx: 2},
+          }
+        }
+      },
+      wires: {
+        'srcProc1:port1 -> destProc:port1': {
+          src: {procId: 'srcProc1', portId: 'port1'},
+          dest: {procId: 'destProc', portId: 'port1'},
+        },
+        'srcProc2:port1 -> destProc:port1': {
+          src: {procId: 'srcProc2', portId: 'port1'},
+          dest: {procId: 'destProc', portId: 'port1'},
+        }
+      }
+    }
+    const prevInputs = {}
+    const actual = selectors.inputs(state, {prevInputs})
+    const expected = {
+      'destProc': {
+        'port1': {
+          isFresh: true,
+          packet: state.outputs['srcProc2']['port1'].packet
+        }
+      }
+    }
+    assert.deepEqual(actual, expected)
+  })
+
+  it('does not propagate inactive inputs', () => {
+    const state = {
+      outputs: {},
+      wires: {}
+    }
+    const prevInputs = {
+      'srcProc1': {
+        'port1': {packet: {id: 'packet1', idx: 1}}
+      }
+    }
+    const actual = selectors.inputs(state, {prevInputs})
+    const expected = {'srcProc1': {}}
     assert.deepEqual(actual, expected)
   })
 })
