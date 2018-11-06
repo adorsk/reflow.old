@@ -4,6 +4,17 @@ import selectors from './selectors.js'
 
 describe('selectors.inputs', () => {
 
+  afterEach(() => {
+    selectors.inputs.resetRecomputations()
+  })
+
+  const _testRecomputations = ({state, prevInputs}) => {
+    for (let i = 0; i < 3; i++) {
+      selectors.inputs(state, {prevInputs})
+    }
+    assert.equal(selectors.inputs.recomputations(), 1)
+  }
+
   it('incoming -> undefined', () => {
     const state = {
       outputs: {
@@ -31,6 +42,7 @@ describe('selectors.inputs', () => {
       }
     }
     assert.deepEqual(actual, expected)
+    _testRecomputations({state, prevInputs})
   })
 
   it('incoming -> older', () => {
@@ -69,6 +81,7 @@ describe('selectors.inputs', () => {
       }
     }
     assert.deepEqual(actual, expected)
+    _testRecomputations({state, prevInputs})
   })
 
   it('incoming -> fresh same age', () => {
@@ -108,6 +121,7 @@ describe('selectors.inputs', () => {
       }
     }
     assert.deepEqual(actual, expected)
+    _testRecomputations({state, prevInputs})
   })
 
   it('incoming -> stale same age', () => {
@@ -139,6 +153,7 @@ describe('selectors.inputs', () => {
     }
     const actual = selectors.inputs(state, {prevInputs})
     assert.equal(actual['destProc']['port1'], prevInputs['destProc']['port1'])
+    _testRecomputations({state, prevInputs})
   })
 
   it('takes newest from multiple incoming', () => {
@@ -177,6 +192,7 @@ describe('selectors.inputs', () => {
       }
     }
     assert.deepEqual(actual, expected)
+    _testRecomputations({state, prevInputs})
   })
 
   it('does not propagate inactive inputs', () => {
@@ -192,5 +208,6 @@ describe('selectors.inputs', () => {
     const actual = selectors.inputs(state, {prevInputs})
     const expected = {'srcProc1': {}}
     assert.deepEqual(actual, expected)
+    _testRecomputations({state, prevInputs})
   })
 })
