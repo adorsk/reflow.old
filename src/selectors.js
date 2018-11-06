@@ -1,0 +1,72 @@
+import { createSelector } from 'reselect'
+import _ from 'lodash'
+
+const selectors = {}
+
+selectors.outputs = (state => state.outputs)
+
+selectors.wires = (state => state.wires)
+
+selectors.wiresByDestProcId = createSelector(
+  selectors.wires,
+  (wires) => _.groupBy(_.values(wires), (wire) => wire.dest.procId)
+)
+
+selectors.inputs = createSelector(
+  selectors.outputs,
+  selectors.wiresByDestProcId,
+  (state, props) => props.prevInputs,
+  (outputs, wiresByDestProcId, prevInputs) => {
+    const nextInputs = {}
+    const procIds = Object.keys({...wiresByDestProcId, ...prevInputs})
+    for (let procId of procIds) {
+      nextInputs[procId] = _computeInputsForProc({
+        procId,
+        incomingWires: wiresByDestProcId[procId],
+        outputs,
+        prevInputsForProc: prevInputs[procId] || {},
+      })
+    }
+    return nextInputs
+  }
+)
+
+const _computeInputsForProc = ({procId, incomingWires, outputs, prevInputsForProc}) => {
+  const nextInputsForProc = {}
+  const newestIncomingPackets = _computeNewestIncomingPackets({procId, incomingWires, outputs})
+  const allPortIds = Object.keys({...prevInputsForProc, ...newestIncomingPackets})
+  for (let portId of allPortIds) {
+    let packet, isFresh
+    if (portId in newestIncomingPackets) {
+      const incomingPacket = newestIncomingPackets[portId]
+      const prevPacket = _.get(prevInputsForProc[portId], 'packet')
+      isFresh = (
+        (!prevPacket)
+        || (incomingPacket.timestamp > prevPacket.timestamp)
+      )
+      packet = (isFresh) ? incomingPacket : prevPacket
+    } else { // not in incoming, has been removed
+      isFresh = true
+      packet = undefined
+    }
+    nextInputsForProc[portId] = { packet, isFresh }
+  }
+  return nextInputsForProc
+}
+
+const _computeNewestIncomingPackets = ({procId, incomingWires, outputs}) => {
+  const incomingWiresByPortId = _.groupBy(incomingWires, (wire) => wire.dest.portId)
+  const newestIncomingPackets = _.mapValues(
+    incomingWiresByPortId,
+    (wires) => {
+      const packets = wires.map((wire) => {
+        return outputs[wire.src.procId][wire.src.portId].packet
+      })
+      const newestPacket = _.maxBy(packets, 'timestamp')
+      return newestPacket
+    }
+  )
+  return newestIncomingPackets
+}
+
+export default selectors
