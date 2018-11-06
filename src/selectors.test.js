@@ -71,7 +71,7 @@ describe('selectors.inputs', () => {
     assert.deepEqual(actual, expected)
   })
 
-  it('incoming -> same age', () => {
+  it('incoming -> fresh same age', () => {
     const state = {
       outputs: {
         'srcProc': {
@@ -90,6 +90,7 @@ describe('selectors.inputs', () => {
     const prevInputs = {
       'destProc': {
         'port1': {
+          isFresh: true,
           packet: {
             id: 'somePacketId',
             idx: state.outputs['srcProc']['port1'].packet.idx,
@@ -107,6 +108,37 @@ describe('selectors.inputs', () => {
       }
     }
     assert.deepEqual(actual, expected)
+  })
+
+  it('incoming -> stale same age', () => {
+    const state = {
+      outputs: {
+        'srcProc': {
+          'port1': {
+            packet: {id: 'packet1', idx: 1},
+          }
+        }
+      },
+      wires: {
+        'srcProc:port1 -> destProc:port1': {
+          src: {procId: 'srcProc', portId: 'port1'},
+          dest: {procId: 'destProc', portId: 'port1'},
+        }
+      }
+    }
+    const prevInputs = {
+      'destProc': {
+        'port1': {
+          isFresh: false,
+          packet: {
+            id: 'somePacketId',
+            idx: state.outputs['srcProc']['port1'].packet.idx,
+          }
+        }
+      }
+    }
+    const actual = selectors.inputs(state, {prevInputs})
+    assert.equal(actual['destProc']['port1'], prevInputs['destProc']['port1'])
   })
 
   it('takes newest from multiple incoming', () => {

@@ -37,13 +37,20 @@ const _selectInputsForProc = ({procId, incomingWires, outputs, prevInputsForProc
   const allPortIds = Object.keys({...prevInputsForProc, ...newestIncomingPackets})
   for (let portId of allPortIds) {
     if (portId in newestIncomingPackets) {
+      let nextInput
       const incomingPacket = newestIncomingPackets[portId]
-      const prevPacket = _.get(prevInputsForProc[portId], 'packet')
-      const isFresh = (!prevPacket) || (incomingPacket.idx > prevPacket.idx)
-      nextInputsForProc[portId] = {
-        isFresh,
-        packet: (isFresh) ? incomingPacket : prevPacket
+      const prevInput = prevInputsForProc[portId]
+      const isFresh = (!prevInput) || (incomingPacket.idx > prevInput.packet.idx)
+      if (isFresh) {
+        nextInput = {isFresh, packet: incomingPacket}
+      } else {
+        nextInput = (
+          (prevInput.isFresh)
+          ? {...prevInput, isFresh: false}
+          : prevInput // preserve object for equality checks
+        )
       }
+      nextInputsForProc[portId] = nextInput
     }
   }
   return nextInputsForProc
