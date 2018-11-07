@@ -3,10 +3,10 @@ import thunk from 'redux-thunk'
 import { createReducer } from 'redux-orm'
 import _ from 'lodash'
 
-import rootReducer from './reducers.js'
 import { orm } from './orm.js'
 import actions from './actions.js'
 import selectors from './selectors.js'
+import * as utils from './utils.js'
 
 const composeEnhancers = (
   (
@@ -18,10 +18,12 @@ const composeEnhancers = (
 )
 
 class Store {
-  constructor ({initialState = {}}) {
+  constructor (opts = {}) {
+    const { initialState } = opts
     this.reduxStore = this._createReduxStore({initialState})
     this.actions = this._createBoundActions()
     this.selectors = selectors
+    this.utils = utils
   }
 
   _createReduxStore ({initialState = {}}) {
@@ -38,12 +40,16 @@ class Store {
 
   _createBoundActions () {
     return _.mapValues(actions, (actionCreators) => {
-      return bindActionCreators(actionCreators, this.reduxStore.dispatch)
+      return redux.bindActionCreators(actionCreators, this.reduxStore.dispatch)
     })
   }
 
   subscribe (...args) {
     return this.reduxStore.subscribe(...args)
+  }
+
+  getState () {
+    return this.reduxStore.getState()
   }
 }
 

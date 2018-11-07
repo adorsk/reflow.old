@@ -1,9 +1,8 @@
 import _ from 'lodash'
+import Store from 'reflow-store/src/Store.js'
 
-import Store from './Store.js'
 import * as constants from './constants.js'
 import NoopComponent from './components/Noop.js'
-import selectors from './selectors.js'
 
 
 const Statuses = {
@@ -14,6 +13,7 @@ class Program {
   constructor () {
     this.props = {}
     this.store = new Store()
+    this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
     this._tickCounter = 0
   }
@@ -27,34 +27,24 @@ class Program {
   }
 
   addProc (proc) {
-    this.store.addProc(proc)
+    this.store.actions.proc.create(proc)
   }
 
   addWire (wire) {
-    this.store.addWire(wire)
+    this.store.actions.wire.create(wire)
   }
 
   sendInputsToProc ({procId, inputs}) {
-    console.log('sendInputsToProc')
     for (let portId of Object.keys(inputs)) {
       const packet = inputs[portId]
       const rootProcPortId = [procId, portId].join(':')
-
-      // Get or create wire
-      const wireDef = {
+      this.store.actions.wire.create({
         src: {
           procId: constants.rootProcId,
-          portId: rootProcPortId,
+          portId: rootProcPortId
         },
-        dest: {
-          procId,
-          portId
-        },
-      }
-      const wireId = this.store.getWireId(wireDef)
-      let wire = this.store.getWire(wireDef) || this.store.addWire(wireDef)
-
-      // set output on root port.
+        dest: {procId, portId}
+      })
       this._updateProcOutputs({
         procId: constants.rootProcId,
         updates: { [rootProcPortId]: packet }
@@ -63,7 +53,7 @@ class Program {
   }
 
   _updateProcOutputs ({procId, updates}) {
-    return this.store.updateProcOutputs({procId, updates})
+    return this.store.actions.proc.updateOutputs({id: procId, updates})
   }
 
   run () {
@@ -71,10 +61,11 @@ class Program {
     const keepAliveTimer = setInterval(() => null, 100)
 
     const runPromise = new Promise((resolve, reject) => {
-      this.store.subscribe(_.debounce((state) => {
+      this.store.subscribe(_.debounce(() => {
+        const state = this.store.getState()
         const prevProps = this.props
         this.props = this._mapStateToProps({state, prevProps})
-        if (this.props.status === Statuses.RESOLVED) {
+        if (this.props.program.status === Statuses.RESOLVED) {
           resolve()
         } else {
           this._tick({prevProps})
@@ -83,7 +74,10 @@ class Program {
 
       // initial tick
       const prevProps = {}
-      this.props = this._mapStateToProps({state: this.store.state, prevProps})
+      this.props = this._mapStateToProps({
+        state: this.store.getState(),
+        prevProps
+      })
       this._tick({prevProps})
     })
 
@@ -96,11 +90,9 @@ class Program {
 
   _mapStateToProps ({state, prevProps}) {
     return {
-      status: state.status,
-      procs: selectors.procs(state),
-      inputs: selectors.inputs(state, {prevInputs: prevProps.inputs}),
-      outputs: selectors.outputs(state),
-      wires: selectors.wires(state),
+      program: this.store.selectors.program(state),
+      procs: this.store.selectors.procs(state),
+      inputs: this.store.selectors.inputs(state, {prevInputs: prevProps.inputs}),
     }
   }
 
@@ -109,12 +101,11 @@ class Program {
     for (let procId of _.keys(this.props.procs)) {
       this._tickProc({procId})
     }
-    const removedProcIds = this._getRemovedProcIds({prevProps})
-    for (let procId of removedProcIds) {
-      this._removeProc({procId, prevProps})
-    }
     if (!this._hasUnresolvedProcs()) {
-      this.store.updateState({status: Statuses.RESOLVED})
+      this.store.actions.program.update({
+        id: this.props.program.id,
+        status: Statuses.RESOLVED
+      })
     }
   }
 
@@ -136,11 +127,10 @@ class Program {
   }
 
   _updateProcStatus ({procId, status}) {
-    return this.store.updateProcStatus({procId, status})
-  }
-
-  _getRemovedProcIds ({prevProps}) {
-    return _.difference(_.keys(prevProps.procs), _.keys(this.props.procs))
+    return this.store.actions.proc.update({
+      id: procId,
+      updates: {status}
+    })
   }
 }
 

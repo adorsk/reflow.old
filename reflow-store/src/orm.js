@@ -1,6 +1,8 @@
 import { ORM, Model, fk } from 'redux-orm'
+import _ from 'lodash'
 
 import { actionTypes } from './actionTypes.js'
+import * as utils from './utils.js'
 
 export class Program extends Model {
   static reducer (action, Program) {
@@ -16,10 +18,14 @@ export class Program extends Model {
 Program.modelName = 'Program'
 
 export class Proc extends Model {
+  constructor (...args) {
+    super(...args)
+    this._packetCounter = 0
+  }
   static reducer (action, Proc) {
     const { payload, type } = action
     if (type === actionTypes.proc.create) {
-        Proc.create(payload)
+      Proc.create(payload)
     } else if (type === actionTypes.proc.update) {
       const { id, updates } = payload
       Proc.withId(id).update(updates)
@@ -29,20 +35,24 @@ export class Proc extends Model {
     } else if (type === actionTypes.proc.updateOutputs) {
       const { id, updates } = payload
       const proc = Proc.withId(id)
-      proc.update({outputs: Object.assign({}, proc.outputs, updates)})
+      const updatesWithIdxs = _.mapValues(updates, (packet) => {
+        return {packet: {...packet, idx: proc._packetCounter++}}
+      })
+      proc.update({
+        outputs: Object.assign({}, proc.outputs, updatesWithIdxs)
+      })
     }
   }
 }
 Proc.modelName = 'Proc'
-Proc.fields = {program: fk('Program')}
 
 export class Wire extends Model {
   static reducer (action, Wire) {
     const { payload, type } = action
     if (type === actionTypes.wire.create) {
-      const { program, srcProc, srcPort, destProc, destPort } = payload
-      const id = `${srcProc.id}:${srcPort} -> ${destProc.id}:${destPort}`
-      Wire.create({id, program: program.id, src, dest})
+      const wire  = payload
+      const id = utils.getWireId(wire)
+      Wire.create({id, ...wire})
     } else if (type === actionTypes.wire.delete) {
       const { id } = payload
       Wire.withId(id).delete()
@@ -50,13 +60,8 @@ export class Wire extends Model {
   }
 }
 Wire.modelName = 'Wire'
-Wire.fields = {
-  program: fk('Program'),
-  srcProc: fk('Proc', 'outgoingWires'),
-  destProc: fk('Proc', 'incomingWires'),
-}
 
 export const orm = new ORM()
-orm.register(Proc, Wire, Program, Output)
+orm.register(Proc, Wire, Program)
 
 export default orm

@@ -25,9 +25,4 @@ actionTypes.wire = _generatePrefixedActionTypes({
   actionTypes: crudActionTypes,
 })
 
-actionTypes.output = _generatePrefixedActionTypes({
-  prefix: 'output',
-  actionTypes: crudActionTypes,
-})
-
 export default actionTypes

@@ -3,7 +3,7 @@ import { actionTypes } from './actionTypes.js'
 const actions = {}
 
 actions.program = {
-  create: ({props}) => ({
+  create: (props) => ({
     type: actionTypes.program.create,
     payload: props,
   }),
@@ -14,7 +14,7 @@ actions.program = {
 }
 
 actions.proc = {
-  create: ({props}) => ({
+  create: (props) => ({
     type: actionTypes.proc.create,
     payload: props,
   }),
@@ -26,34 +26,20 @@ actions.proc = {
     type: actionTypes.proc.delete,
     payload: {id},
   }),
-  updateOutputs: ({id, updates}) => {
-    console.log('@TODO')
-  },
+  updateOutputs: ({id, updates}) => ({
+    type: actionTypes.proc.updateOutputs,
+    payload: {id, updates}
+  }),
 }
 
 actions.wire = {
-  create: ({props}) => ({
+  create: (props) => ({
     type: actionTypes.wire.create,
     payload: props,
   }),
   delete: ({id}) => ({
     type: actionTypes.wire.delete,
     payload: { id },
-  }),
-}
-
-actions.output = {
-  create: ({props}) => ({
-    type: actionTypes.output.create,
-    payload: props,
-  }),
-  update: ({id, updates}) => ({
-    type: actionTypes.output.update,
-    payload: {id, updates}
-  }),
-  delete: ({id}) => ({
-    type: actionTypes.output.delete,
-    payload: {id},
   }),
 }
 

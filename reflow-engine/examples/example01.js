@@ -1,7 +1,7 @@
-import reflow from './../src/reflow.js'
+import Program from './../src/Program.js'
 import components from './components/index.js'
 
-const prog = new reflow.Program()
+const prog = new Program()
 
 prog.addProc({
   id: 'generate',

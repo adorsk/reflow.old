@@ -6,7 +6,8 @@
   "dependencies": {
     "lodash": "^4.17.11",
     "redux": "^4.0.1",
-    "reselect": "^4..0"
+    "reselect": "^4..0",
+    "reflow-store": "file:../reflow-store"
   },
   "devDependencies": {
     "esm": "^3.0.84",
