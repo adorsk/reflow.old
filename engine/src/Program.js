@@ -15,6 +15,7 @@ class Program {
     this.props = {}
     this.store = new Store()
     this._addRootProc()
+    this._tickCounter = 0
   }
 
   _addRootProc () {
@@ -104,7 +105,7 @@ class Program {
   }
 
   _tick({prevProps}) {
-    console.log('_tick')
+    console.log('_tick', this._tickCounter++)
     for (let procId of _.keys(this.props.procs)) {
       this._tickProc({procId})
     }
