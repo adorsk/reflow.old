@@ -3,6 +3,13 @@ import _ from 'lodash'
 import Store from './Store.js'
 import * as constants from './constants.js'
 import NoopComponent from './components/Noop.js'
+import selectors from './selectors.js'
+
+const ProcStatuses = {
+  INACTIVE: 'INACTIVE',
+  ACTIVE: 'ACTIVE',
+  COMPONENT_NOT_LOADED: 'COMPONENT_NOT_LOADED',
+}
 
 class Program {
   constructor () {
@@ -15,11 +22,12 @@ class Program {
     this.addProc({
       id: constants.rootProcId,
       component: NoopComponent.getInstance(),
+      status: ProcStatuses.ACTIVE,
     })
   }
 
-  addProc (procDef) {
-    this.store.addProcDef(procDef)
+  addProc (proc) {
+    this.store.addProc({status: ProcStatuses.INACTIVE, ...proc})
   }
 
   addWire (wire) {
@@ -36,11 +44,11 @@ class Program {
       const wireDef = {
         src: {
           procId: constants.rootProcId,
-          ioId: portId,
+          portId: portId,
         },
         dest: {
           procId,
-          ioId: valueKey
+          portId: valueKey
         },
       }
       const wireId = this.store.getWireId(wireDef)
@@ -61,6 +69,9 @@ class Program {
   run () {
     console.log('run')
     this.store.subscribe(_.debounce(this._onStateChange.bind(this), 0))
+    const prevProps = {}
+    this.props = this._mapStateToProps({state: this.store.state, prevProps})
+    this._tick({prevProps})
   }
 
   _onStateChange ({state}) {
@@ -70,25 +81,40 @@ class Program {
   }
 
   _mapStateToProps ({state, prevProps}) {
-    const procStates = {}
-    for (let procId of Object.keys(state.procDefs)) {
-      const procDef = state.procDefs[procId]
-      procStates[procId] = {
-        id: procId,
-        component: procDef.component,
-        inputs: null, // COMPUTE THIS!
-        outputs: state.outputs[procId] || {},
-      }
-    }
     return {
-      procStates,
-      wires: state.wires,
+      procs: selectors.procs(state),
+      inputs: selectors.inputs(state, {prevInputs: prevProps.inputs}),
+      outputs: selectors.outputs(state),
+      wires: selectors.wires(state),
     }
   }
 
   _tick({prevProps}) {
-    // Tick dirty procs
-    console.log('tick')
+    console.log('_tick')
+    for (let procId of _.keys(this.props.procs)) {
+      this._tickProc({procId})
+    }
+    const removedProcIds = this._getRemovedProcIds({prevProps})
+    for (let procId of removedProcIds) {
+      this._removeProc({procId, prevProps})
+    }
+    // update program state.
+  }
+
+  _tickProc ({procId}) {
+    const proc = this.props.procs[procId]
+    proc.component.tick({
+      inputs: (this.props.inputs[procId] || {}),
+      setOutputs: (values) => this._updateProcOutputs({procId, values})
+    })
+  }
+
+  _updateProc ({procId, updates}) {
+    this.store.updateProc({procId, updates})
+  }
+
+  _getRemovedProcIds ({prevProps}) {
+    return _.difference(_.keys(prevProps.procs), _.keys(this.props.procs))
   }
 }
 

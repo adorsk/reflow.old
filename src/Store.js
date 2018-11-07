@@ -1,7 +1,7 @@
 class Store {
   constructor (initialState = {}) {
     this.state = {
-      procDefs: {},
+      procs: {},
       wires: {},
       outputs: {},
       ...initialState
@@ -25,9 +25,9 @@ class Store {
     this.setState({...this.state, ...updates})
   }
 
-  addProcDef (proc) {
+  addProc (proc) {
     this.updateState({
-      procDefs: Object.assign({}, this.state.procDefs, {[proc.id]: proc})
+      procs: Object.assign({}, this.state.procs, {[proc.id]: proc})
     })
     return proc
   }
@@ -43,7 +43,7 @@ class Store {
   getWireId (wire) {
     const wireId = (
       [wire.src, wire.dest].map(portDef => {
-        return [portDef.procId, portDef.ioId].join(':')
+        return [portDef.procId, portDef.portId].join(':')
       })
       .join(' -> ')
     )
@@ -60,12 +60,23 @@ class Store {
     const nextOutputs = Object.assign({}, prevOutputs)
     for (let key of Object.keys(values)) {
       nextOutputs[key] = {
-        timestamp: (new Date() / 1000),
-        value: values[key],
+        packet: {
+          timestamp: (new Date() / 1000),
+          value: values[key],
+        }
       }
     }
     this.updateState({
       outputs: {...this.state.outputs, [procId]: nextOutputs}
+    })
+  }
+
+  updateProc ({procId, updates}) {
+    this.updateState({
+      procs: {
+        ...this.state.procs,
+        [procId]: {...this.state.procs[procId], ...updates}
+      }
     })
   }
 }

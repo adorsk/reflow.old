@@ -1,6 +1,6 @@
 class Copier {
   tick ({inputs, setOutputs}) {
-    if (inputs.IN.isFresh) {
+    if (inputs.IN && inputs.IN.isFresh) {
       setOutputs({'OUT': inputs.IN})
     }
   }

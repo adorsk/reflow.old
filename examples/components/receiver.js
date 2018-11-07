@@ -1,6 +1,6 @@
 class Receiver {
   tick ({inputs}) {
-    if (inputs.IN.isFresh) {
+    if (inputs.IN && inputs.IN.isFresh) {
       const packet = inputs.IN.packet
       if (packet.type === 'OPEN') {
         console.log('open')

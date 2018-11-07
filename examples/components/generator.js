@@ -8,7 +8,7 @@ class Generator {
   }
 
   tick ({inputs, setOutputs}) {
-    if (inputs.COUNT.isFresh) {
+    if (inputs.COUNT && inputs.COUNT.isFresh) {
       this.state.emitting = true
       this.state.numToEmit = inputs.n.value
       this.state.counter = 0

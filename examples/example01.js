@@ -17,12 +17,12 @@ prog.addProc({
 })
 
 prog.addWire({
-  src: { procId: 'generate', ioId: 'OUT' },
-  dest: { procId: 'copy', ioId: 'IN' },
+  src: { procId: 'generate', portId: 'OUT' },
+  dest: { procId: 'copy', portId: 'IN' },
 })
 prog.addWire({
-  src: { procId: 'copy', ioId: 'OUT' },
-  dest: { procId: 'receive', ioId: 'IN' },
+  src: { procId: 'copy', portId: 'OUT' },
+  dest: { procId: 'receive', portId: 'IN' },
 })
 
 prog.updateProcInputs({
