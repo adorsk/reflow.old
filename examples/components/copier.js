@@ -1,7 +1,8 @@
 class Copier {
-  tick ({inputs, setOutputs}) {
+  tick ({inputs, updateOutputs, resolve}) {
     if (inputs.IN && inputs.IN.isFresh) {
-      setOutputs({'OUT': inputs.IN})
+      updateOutputs({'OUT': {data: inputs.IN.packet.data}})
+      resolve()
     }
   }
 }

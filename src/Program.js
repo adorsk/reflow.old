@@ -5,10 +5,9 @@ import * as constants from './constants.js'
 import NoopComponent from './components/Noop.js'
 import selectors from './selectors.js'
 
-const ProcStatuses = {
-  INACTIVE: 'INACTIVE',
-  ACTIVE: 'ACTIVE',
-  COMPONENT_NOT_LOADED: 'COMPONENT_NOT_LOADED',
+
+const Statuses = {
+  RESOLVED: 'RESOLVED',
 }
 
 class Program {
@@ -22,33 +21,33 @@ class Program {
     this.addProc({
       id: constants.rootProcId,
       component: NoopComponent.getInstance(),
-      status: ProcStatuses.ACTIVE,
+      status: Statuses.RESOLVED,
     })
   }
 
   addProc (proc) {
-    this.store.addProc({status: ProcStatuses.INACTIVE, ...proc})
+    this.store.addProc(proc)
   }
 
   addWire (wire) {
     this.store.addWire(wire)
   }
 
-  updateProcInputs ({procId, values}) {
-    console.log('updateProcInputs')
-    for (let valueKey of Object.keys(values)) {
-      const value = values[valueKey]
-      const portId = [procId, valueKey].join(':')
+  sendInputsToProc ({procId, inputs}) {
+    console.log('sendInputsToProc')
+    for (let portId of Object.keys(inputs)) {
+      const packet = inputs[portId]
+      const rootProcPortId = [procId, portId].join(':')
 
       // Get or create wire
       const wireDef = {
         src: {
           procId: constants.rootProcId,
-          portId: portId,
+          portId: rootProcPortId,
         },
         dest: {
           procId,
-          portId: valueKey
+          portId
         },
       }
       const wireId = this.store.getWireId(wireDef)
@@ -57,31 +56,46 @@ class Program {
       // set output on root port.
       this._updateProcOutputs({
         procId: constants.rootProcId,
-        values: { [portId]: value }
+        updates: { [rootProcPortId]: packet }
       })
     }
   }
 
-  _updateProcOutputs (...args) {
-    return this.store.updateProcOutputs(...args)
+  _updateProcOutputs ({procId, updates}) {
+    return this.store.updateProcOutputs({procId, updates})
   }
 
   run () {
     console.log('run')
-    this.store.subscribe(_.debounce(this._onStateChange.bind(this), 0))
-    const prevProps = {}
-    this.props = this._mapStateToProps({state: this.store.state, prevProps})
-    this._tick({prevProps})
+    const keepAliveTimer = setInterval(() => null, 100)
+
+    const runPromise = new Promise((resolve, reject) => {
+      this.store.subscribe(_.debounce((state) => {
+        const prevProps = this.props
+        this.props = this._mapStateToProps({state, prevProps})
+        if (this.props.status === Statuses.RESOLVED) {
+          resolve()
+        } else {
+          this._tick({prevProps})
+        }
+      }, 0))
+
+      // initial tick
+      const prevProps = {}
+      this.props = this._mapStateToProps({state: this.store.state, prevProps})
+      this._tick({prevProps})
+    })
+
+    return runPromise.then((...args) => {
+      clearInterval(keepAliveTimer)
+      return args
+    })
   }
 
-  _onStateChange ({state}) {
-    const prevProps = this.props
-    this.props = this._mapStateToProps({state, prevProps})
-    this._tick({prevProps})
-  }
 
   _mapStateToProps ({state, prevProps}) {
     return {
+      status: state.status,
       procs: selectors.procs(state),
       inputs: selectors.inputs(state, {prevInputs: prevProps.inputs}),
       outputs: selectors.outputs(state),
@@ -98,19 +112,30 @@ class Program {
     for (let procId of removedProcIds) {
       this._removeProc({procId, prevProps})
     }
-    // update program state.
+    if (!this._hasUnresolvedProcs()) {
+      this.store.updateState({status: Statuses.RESOLVED})
+    }
+  }
+
+  _hasUnresolvedProcs () {
+    return _.some(this.props.procs, (proc) => (proc.status !== Statuses.RESOLVED))
   }
 
   _tickProc ({procId}) {
     const proc = this.props.procs[procId]
     proc.component.tick({
       inputs: (this.props.inputs[procId] || {}),
-      setOutputs: (values) => this._updateProcOutputs({procId, values})
+      updateOutputs: (updates) => {
+        this._updateProcOutputs({procId, updates})
+      },
+      resolve: () => {
+        this._updateProcStatus({procId, status: 'RESOLVED'})
+      },
     })
   }
 
-  _updateProc ({procId, updates}) {
-    this.store.updateProc({procId, updates})
+  _updateProcStatus ({procId, status}) {
+    return this.store.updateProcStatus({procId, status})
   }
 
   _getRemovedProcIds ({prevProps}) {

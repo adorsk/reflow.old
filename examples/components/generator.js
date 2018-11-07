@@ -7,17 +7,18 @@ class Generator {
     }
   }
 
-  tick ({inputs, setOutputs}) {
+  tick ({inputs, updateOutputs, resolve}) {
     if (inputs.COUNT && inputs.COUNT.isFresh) {
       this.state.emitting = true
-      this.state.numToEmit = inputs.n.value
+      this.state.numToEmit = inputs.COUNT.packet.data
       this.state.counter = 0
     }
     if (this.state.emitting) {
       if (this.state.counter >= this.state.numToEmit) {
         this.state.emitting = false
+        resolve()
       } else {
-        setOutputs({OUT: this.state.counter})
+        updateOutputs({OUT: {data: this.state.counter}})
         this.state.counter += 1
       }
     }

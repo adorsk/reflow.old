@@ -25,9 +25,11 @@ prog.addWire({
   dest: { procId: 'receive', portId: 'IN' },
 })
 
-prog.updateProcInputs({
+prog.sendInputsToProc({
   procId: 'generate',
-  values: {'IN': 2000}
+  inputs: {'COUNT': {data: 3}}
 })
 
-prog.run()
+prog.run().then(() => {
+  console.log('done!')
+})

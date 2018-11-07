@@ -1,5 +1,5 @@
 class Receiver {
-  tick ({inputs}) {
+  tick ({inputs, resolve}) {
     if (inputs.IN && inputs.IN.isFresh) {
       const packet = inputs.IN.packet
       if (packet.type === 'OPEN') {
@@ -9,7 +9,8 @@ class Receiver {
         console.log('close')
       }
       else {
-        console.log('data ', packet.contents)
+        console.log('data ', packet.data)
+        resolve()
       }
     }
   }

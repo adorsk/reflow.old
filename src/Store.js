@@ -4,8 +4,10 @@ class Store {
       procs: {},
       wires: {},
       outputs: {},
+      status: null,
       ...initialState
     }
+    this._packetCounter = 0
     this.subscriberCallbacks = []
     // Add initial hidden root proc, for setting inputs.
   }
@@ -55,14 +57,15 @@ class Store {
     return this.state.wires[wireId]
   }
 
-  updateProcOutputs ({procId, values}) {
+  updateProcOutputs ({procId, updates}) {
     const prevOutputs = this.state.outputs[procId] || {}
     const nextOutputs = Object.assign({}, prevOutputs)
-    for (let key of Object.keys(values)) {
-      nextOutputs[key] = {
+    for (let portId of Object.keys(updates)) {
+      nextOutputs[portId] = {
         packet: {
+          idx: this._packetCounter++,
           timestamp: (new Date() / 1000),
-          value: values[key],
+          ...updates[portId],
         }
       }
     }
@@ -78,6 +81,14 @@ class Store {
         [procId]: {...this.state.procs[procId], ...updates}
       }
     })
+  }
+
+  updateProcStatus ({procId, status}) {
+    this.updateProc({procId, updates: {status}})
+  }
+
+  updateStatus ({status}) {
+    this.updateState({status})
   }
 }
 
