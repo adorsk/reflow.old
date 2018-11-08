@@ -40,9 +40,7 @@ class Program {
   }
 
   updateDerivedState () {
-    this.derivedState = this.store.getDerivedState({
-      prevDerivedState: this.derivedState
-    })
+    this.derivedState = this.store.getDerivedState()
   }
 
   getProcs () {

@@ -5,12 +5,13 @@ class Generator {
       numToEmit: 0,
       counter: 0,
     }
+    this.prevInputs = {}
   }
 
   tick ({inputs, updateOutputs, resolve}) {
-    if (inputs.COUNT && inputs.COUNT.isFresh) {
+    if (inputs.COUNT && (inputs.COUNT !== this.prevInputs.COUNT)) {
       this.state.emitting = true
-      this.state.numToEmit = inputs.COUNT.packet.data
+      this.state.numToEmit = inputs.COUNT.data
       this.state.counter = 0
     }
     if (this.state.emitting) {
@@ -22,6 +23,7 @@ class Generator {
         this.state.counter += 1
       }
     }
+    this.prevInputs = inputs
   }
 }
 

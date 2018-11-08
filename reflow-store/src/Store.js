@@ -47,10 +47,8 @@ class Store {
   }
 
   getDerivedState (opts = {}) {
-    const prevDerivedState = opts.prevDerivedState || {}
-    const rawState = this.getRawState()
     return {
-      program: this.selectors.derivedProgram(rawState, prevDerivedState)
+      program: this.selectors.derivedProgram(this.getRawState())
     }
   }
 
