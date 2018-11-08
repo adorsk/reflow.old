@@ -1,9 +1,6 @@
 class Receiver {
-  constructor () {
-    this.prevInputs = {}
-  }
-  tick ({inputs, resolve}) {
-    if (inputs.IN && (inputs.IN !== this.prevInputs.IN)) {
+  tick ({inputs, prevInputs, resolve}) {
+    if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
       const packet = inputs.IN
       if (packet.type === 'OPEN') {
         console.log('open')
@@ -16,7 +13,6 @@ class Receiver {
         resolve()
       }
     }
-    this.prevInputs = inputs
   }
 }
 

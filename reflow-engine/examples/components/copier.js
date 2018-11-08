@@ -1,14 +1,9 @@
 class Copier {
-  constructor () {
-    this.prevInputs = {}
-  }
-
-  tick ({inputs, updateOutputs, resolve}) {
-    if (inputs.IN && (inputs.IN !== this.prevInputs.IN)) {
+  tick ({inputs, prevInputs, updateOutputs, resolve}) {
+    if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
       updateOutputs({'OUT': {data: inputs.IN.data}})
       resolve()
     }
-    this.prevInputs = inputs
   }
 }
 

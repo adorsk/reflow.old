@@ -11,7 +11,7 @@ const Statuses = {
 
 class Program {
   constructor (opts = {}) {
-    this.derivedState = {}
+    this._prevProcs = {}
     this.store = opts.store || this._createStore()
     this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
@@ -44,6 +44,7 @@ class Program {
   }
 
   getProcs () {
+    this.updateDerivedState()
     return _.get(this.derivedState, ['program', 'procs'], {})
   }
 
@@ -109,12 +110,14 @@ class Program {
     for (let proc of _.values(program.procs)) {
       this._tickProc({proc})
     }
+    this._prevProcs = program.procs
     if (!this._hasUnresolvedProcs({program})) {
       this.store.actions.program.update({
         id: program.id,
         updates: { status: Statuses.RESOLVED }
       })
     }
+    this._prevProcs = program.procs
   }
 
   _hasUnresolvedProcs ({program}) {
@@ -123,7 +126,8 @@ class Program {
 
   _tickProc ({proc}) {
     proc.component.tick({
-      inputs: _.get(proc, 'inputs', {}),
+      inputs: _.get(proc, ['inputs'], {}),
+      prevInputs: _.get(this._prevProcs, [proc.id, 'inputs'], {}),
       updateOutputs: (updates) => {
         this._updateProcOutputs({procId: proc.id, updates})
       },
