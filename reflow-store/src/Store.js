@@ -28,9 +28,7 @@ class Store {
 
   _createReduxStore ({initialState = {}}) {
     const enhancer = composeEnhancers(redux.applyMiddleware(thunk))
-    const rootReducer = redux.combineReducers({
-      orm: createReducer(orm)
-    })
+    const rootReducer = redux.combineReducers({ orm: createReducer(orm) })
     const initialStateWithOrm = {
       orm: orm.getEmptyState(),
       ...initialState,

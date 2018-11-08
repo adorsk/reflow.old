@@ -16,6 +16,7 @@ class Program {
     this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
     this._tickCounter = 0
+    this._packetCounter = 0
   }
 
   _addRootProc () {
@@ -53,7 +54,13 @@ class Program {
   }
 
   _updateProcOutputs ({procId, updates}) {
-    return this.store.actions.proc.updateOutputs({id: procId, updates})
+    const updatesWithIdxs = _.mapValues(updates, (packet) => {
+      return {packet: {...packet, idx: this._packetCounter++}}
+    })
+    return this.store.actions.proc.updateOutputs({
+      id: procId,
+      updates: updatesWithIdxs
+    })
   }
 
   run () {
@@ -97,14 +104,14 @@ class Program {
   }
 
   _tick({prevProps}) {
-    console.log('_tick', this._tickCounter++)
+    console.debug('_tick', this._tickCounter++)
     for (let procId of _.keys(this.props.procs)) {
       this._tickProc({procId})
     }
     if (!this._hasUnresolvedProcs()) {
       this.store.actions.program.update({
         id: this.props.program.id,
-        status: Statuses.RESOLVED
+        updates: { status: Statuses.RESOLVED }
       })
     }
   }

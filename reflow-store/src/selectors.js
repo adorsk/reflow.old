@@ -18,7 +18,7 @@ const _modelsToRefs = (models) => _.mapValues(models, (model) => model.ref)
 selectors.program = createSelector(
   _ormSelector,
   ormCreateSelector(orm, (session) => {
-    return session.Program.first()
+    return session.Program.first().ref
   })
 )
 

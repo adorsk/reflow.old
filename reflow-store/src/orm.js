@@ -18,10 +18,6 @@ export class Program extends Model {
 Program.modelName = 'Program'
 
 export class Proc extends Model {
-  constructor (...args) {
-    super(...args)
-    this._packetCounter = 0
-  }
   static reducer (action, Proc) {
     const { payload, type } = action
     if (type === actionTypes.proc.create) {
@@ -35,12 +31,7 @@ export class Proc extends Model {
     } else if (type === actionTypes.proc.updateOutputs) {
       const { id, updates } = payload
       const proc = Proc.withId(id)
-      const updatesWithIdxs = _.mapValues(updates, (packet) => {
-        return {packet: {...packet, idx: proc._packetCounter++}}
-      })
-      proc.update({
-        outputs: Object.assign({}, proc.outputs, updatesWithIdxs)
-      })
+      proc.update({outputs: Object.assign({}, proc.outputs, updates)})
     }
   }
 }
