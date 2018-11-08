@@ -11,7 +11,7 @@ const Statuses = {
 
 class Program {
   constructor (opts = {}) {
-    this.props = {}
+    this.derivedState = {}
     this.store = opts.store || this._createStore()
     this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
@@ -37,6 +37,20 @@ class Program {
 
   addWire (wire) {
     this.store.actions.wire.create(wire)
+  }
+
+  updateDerivedState () {
+    this.derivedState = this.store.getDerivedState({
+      prevDerivedState: this.derivedState
+    })
+  }
+
+  getProcs () {
+    return _.get(this.derivedState, ['program', 'procs'], {})
+  }
+
+  updateProc ({id, updates}) {
+    this.store.actions.proc.update({id, updates})
   }
 
   sendInputsToProc ({procId, inputs}) {
@@ -72,9 +86,7 @@ class Program {
     const keepAliveTimer = setInterval(() => null, 100)
     const runPromise = new Promise((resolve, reject) => {
       this.store.subscribe(_.debounce(() => {
-        this.derivedState = this.store.getDerivedState({
-          prevDerivedState: this.derivedState
-        })
+        this.updateDerivedState()
         if (this.derivedState.program.status === Statuses.RESOLVED) {
           resolve()
         } else {
@@ -82,7 +94,7 @@ class Program {
         }
       }, 0))
       // initial tick
-      this.derivedState = this.store.getDerivedState()
+      this.updateDerivedState()
       this._tick({derivedState: this.derivedState})
     })
 

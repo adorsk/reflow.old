@@ -1,5 +1,6 @@
 import React from 'react'
 import _ from 'lodash'
+import interact from 'interactjs'
 
 import Proc from './Proc.js'
 import Wire from './Wire.js'
@@ -45,16 +46,16 @@ class Program extends React.Component {
 
   _getPortInfos () {
     const { program } = this.props
-    const ioTypes = ['inputs', 'outputs']
+    const portTypes = ['inputs', 'outputs']
     const portInfos = {}
     _.each(program.procs, (proc, procId) => {
-      for (let ioType of ioTypes) {
-        _.each(proc[ioType].handles, (handle, handleId) => {
-          const infoId = [procId, ioType, handleId].join(':')
+      for (let portType of portTypes) {
+        _.each(proc[portType].handles, (handle, handleId) => {
+          const infoId = [procId, portType, handleId].join(':')
           portInfos[infoId] = {
             id: infoId,
             procId,
-            ioType,
+            portType,
             handle
           }
         })
@@ -84,16 +85,40 @@ class Program extends React.Component {
   }
 
   renderProc ({proc}) {
+    const uiState = _.get(proc, ['uiState'], {})
     return (
       <Proc
         key={proc.id}
         proc={proc}
         style={{
           position: 'absolute',
-          //left: proc.position.x,
-          //top: proc.position.y,
+          left: _.get(uiState, ['position', 'x'], 0),
+          top: _.get(uiState, ['position', 'y'], 0),
         }}
-        afterMount={(el) => { this.procRefs[proc.id] = el }}
+        afterMount={(el) => {
+          this.procRefs[proc.id] = el
+          interact(el.labelRef.current).draggable({
+            restrict: false,
+            autoScroll: true,
+            onmove: (dragEvent) => {
+              // have 
+              const currentUiState = _.get(this.props.program.procs, [proc.id, 'uiState'])
+              const currentPos = currentUiState.position
+              this.props.actions.proc.update({
+                id: proc.id,
+                updates: {
+                  uiState: {
+                    ...currentUiState,
+                    position: {
+                      x: currentPos.x + dragEvent.dx,
+                      y: currentPos.y + dragEvent.dy
+                    }
+                  }
+                }
+              })
+            }
+          })
+        }}
         beforeUnmount={() => { delete this.procRefs[proc.id] }}
         setOutputValues={({outputValues}) => {
           console.log('setOutputValues')
