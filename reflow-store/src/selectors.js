@@ -42,18 +42,27 @@ selectors.outputsByProcId = createSelector(
   (procs) => _.mapValues(procs, (proc) => proc.outputs)
 )
 
-const _selectInputs = (wiresByDestProcId, outputsByProcId, prevInputs) => {
-  const nextInputs = {}
-  const procIds = Object.keys({...wiresByDestProcId, ...prevInputs})
-  for (let procId of procIds) {
-    nextInputs[procId] = _selectInputsForProc({
+const _selectPrevInputsByProcId = (state, prevDerivedState) => {
+  const prevProcs = _.get(prevDerivedState, ['program', 'procs'])
+  return _.mapValues(prevProcs, (proc) => _.get(proc, 'inputs', {}))
+}
+
+const _deriveInputsByProcId = (
+  wiresByDestProcId,
+  outputsByProcId,
+  prevInputsByProcId
+) => {
+  const inputsByProcId = {}
+  const procIdsForProcsWithInputs = Object.keys(wiresByDestProcId)
+  for (let procId of procIdsForProcsWithInputs) {
+    inputsByProcId[procId] = _selectInputsForProc({
       procId,
       incomingWires: wiresByDestProcId[procId],
       outputsByProcId,
-      prevInputsForProc: prevInputs[procId] || {},
+      prevInputsForProc: _.get(prevInputsByProcId, procId, {})
     })
   }
-  return nextInputs
+  return inputsByProcId
 }
 
 export const _selectInputsForProc = (opts) => {
@@ -107,11 +116,32 @@ const _selectNewestIncomingPackets = (opts = {}) => {
   return newestIncomingPackets
 }
 
-selectors.inputs = createSelector(
+selectors.inputsByProcId = createSelector(
   selectors.wiresByDestProcId,
   selectors.outputsByProcId,
-  (state, props) => props.prevInputs || {},
-  _selectInputs
+  _selectPrevInputsByProcId,
+  _deriveInputsByProcId
+)
+
+selectors.derivedProgram = createSelector(
+  selectors.program,
+  selectors.procs,
+  selectors.wires,
+  selectors.outputsByProcId,
+  selectors.inputsByProcId,
+  (program, procs, wires, outputsByProcId, inputsByProcId) => {
+    return {
+      ...program,
+      procs: _.mapValues(procs, (proc) => {
+        return {
+          ...proc,
+          inputs: _.get(inputsByProcId, proc.id, {}),
+          outputs: _.get(outputsByProcId, proc.id, {}),
+        }
+      }),
+      wires,
+    }
+  }
 )
 
 export default selectors

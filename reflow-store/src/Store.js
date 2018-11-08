@@ -46,10 +46,17 @@ class Store {
     return this.reduxStore.subscribe(...args)
   }
 
-  getState () {
+  getDerivedState (opts = {}) {
+    const prevDerivedState = opts.prevDerivedState || {}
+    const rawState = this.getRawState()
+    return {
+      program: this.selectors.derivedProgram(rawState, prevDerivedState)
+    }
+  }
+
+  getRawState () {
     return this.reduxStore.getState()
   }
 }
 
 export default Store
-

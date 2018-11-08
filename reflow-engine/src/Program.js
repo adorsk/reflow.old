@@ -10,13 +10,17 @@ const Statuses = {
 }
 
 class Program {
-  constructor () {
+  constructor (opts = {}) {
     this.props = {}
-    this.store = new Store()
+    this.store = opts.store || this._createStore()
     this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
     this._tickCounter = 0
     this._packetCounter = 0
+  }
+
+  _createStore () {
+    return new Store()
   }
 
   _addRootProc () {
@@ -66,26 +70,20 @@ class Program {
   run () {
     console.log('run')
     const keepAliveTimer = setInterval(() => null, 100)
-
     const runPromise = new Promise((resolve, reject) => {
       this.store.subscribe(_.debounce(() => {
-        const state = this.store.getState()
-        const prevProps = this.props
-        this.props = this._mapStateToProps({state, prevProps})
-        if (this.props.program.status === Statuses.RESOLVED) {
+        this.derivedState = this.store.getDerivedState({
+          prevDerivedState: this.derivedState
+        })
+        if (this.derivedState.program.status === Statuses.RESOLVED) {
           resolve()
         } else {
-          this._tick({prevProps})
+          this._tick({derivedState: this.derivedState})
         }
       }, 0))
-
       // initial tick
-      const prevProps = {}
-      this.props = this._mapStateToProps({
-        state: this.store.getState(),
-        prevProps
-      })
-      this._tick({prevProps})
+      this.derivedState = this.store.getDerivedState()
+      this._tick({derivedState: this.derivedState})
     })
 
     return runPromise.then((...args) => {
@@ -94,41 +92,33 @@ class Program {
     })
   }
 
-
-  _mapStateToProps ({state, prevProps}) {
-    return {
-      program: this.store.selectors.program(state),
-      procs: this.store.selectors.procs(state),
-      inputs: this.store.selectors.inputs(state, {prevInputs: prevProps.inputs}),
-    }
-  }
-
-  _tick({prevProps}) {
+  _tick({derivedState = {}}) {
     console.debug('_tick', this._tickCounter++)
-    for (let procId of _.keys(this.props.procs)) {
-      this._tickProc({procId})
+    const { program } = derivedState
+    if (! program) { return }
+    for (let proc of _.values(program.procs)) {
+      this._tickProc({proc})
     }
-    if (!this._hasUnresolvedProcs()) {
+    if (!this._hasUnresolvedProcs({program})) {
       this.store.actions.program.update({
-        id: this.props.program.id,
+        id: program.id,
         updates: { status: Statuses.RESOLVED }
       })
     }
   }
 
-  _hasUnresolvedProcs () {
-    return _.some(this.props.procs, (proc) => (proc.status !== Statuses.RESOLVED))
+  _hasUnresolvedProcs ({program}) {
+    return _.some(program.procs, (proc) => (proc.status !== Statuses.RESOLVED))
   }
 
-  _tickProc ({procId}) {
-    const proc = this.props.procs[procId]
+  _tickProc ({proc}) {
     proc.component.tick({
-      inputs: (this.props.inputs[procId] || {}),
+      inputs: _.get(proc, 'inputs', {}),
       updateOutputs: (updates) => {
-        this._updateProcOutputs({procId, updates})
+        this._updateProcOutputs({procId: proc.id, updates})
       },
       resolve: () => {
-        this._updateProcStatus({procId, status: 'RESOLVED'})
+        this._updateProcStatus({procId: proc.id, status: 'RESOLVED'})
       },
     })
   }
