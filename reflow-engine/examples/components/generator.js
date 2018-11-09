@@ -8,7 +8,6 @@ class Generator {
   }
 
   tick ({inputs, prevInputs, updateOutputs, resolve}) {
-    console.log("i: ", inputs.COUNT, "pi: ", prevInputs.COUNT)
     if (inputs.COUNT && (inputs.COUNT !== prevInputs.COUNT)) {
       this.state.emitting = true
       this.state.numToEmit = inputs.COUNT.data
