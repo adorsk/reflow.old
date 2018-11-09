@@ -31,18 +31,23 @@ class App extends React.Component {
 
   _setupEngineProgram () {
     const engineProgram = createProgram()
+    this.props.actions.setEngineProgram({engineProgram})
+    const initialEngineState = engineProgram.store.getDerivedState()
+    this._setInitialProcPositions({
+      procIds: _.keys(_.get(initialEngineState, ['program', 'procs'], {}))
+    })
+    this.props.actions.setEngineState({engineState: initialEngineState})
     engineProgram.store.subscribe(_.debounce(() => {
       this.props.actions.setEngineState({
         engineState: engineProgram.store.getDerivedState()
       })
     }), 0)
-    this.props.actions.setEngineProgram({engineProgram})
     engineProgram.run()
   }
 
-  _setProcPositions ({procs}) {
+  _setInitialProcPositions ({procIds}) {
     let counter = 0
-    _.each(procs, (proc, procId) => {
+    for (let procId of procIds) {
       this.props.actions.updateProcUiState({
         procId,
         updates: {
@@ -57,7 +62,7 @@ class App extends React.Component {
         }
       })
       counter += 1
-    })
+    }
   }
 }
 
