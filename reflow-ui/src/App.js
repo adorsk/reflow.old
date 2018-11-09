@@ -8,16 +8,6 @@ import Program from './components/Program.js'
 
 
 class App extends React.Component {
-  constructor (props) {
-    super(props)
-    this.program = createProgram()
-    this.program.store.subscribe(_.debounce(() => {
-      this.props.actions.setEngineState({
-        engineState: this.program.store.getDerivedState()
-      })
-    }), 0)
-  }
-
   render () {
     return (
       <div>
@@ -34,8 +24,20 @@ class App extends React.Component {
   }
 
   componentDidMount () {
-    this._setProcPositions({procs: this.program.getProcs()})
-    this.program.run()
+    if (! this.props.engineProgram) {
+      this._setupEngineProgram()
+    }
+  }
+
+  _setupEngineProgram () {
+    const engineProgram = createProgram()
+    engineProgram.store.subscribe(_.debounce(() => {
+      this.props.actions.setEngineState({
+        engineState: engineProgram.store.getDerivedState()
+      })
+    }), 0)
+    this.props.actions.setEngineProgram({engineProgram})
+    engineProgram.run()
   }
 
   _setProcPositions ({procs}) {
@@ -74,7 +76,10 @@ function _selectMergedProgram ({engineState, procUiStates}) {
 }
 
 function mapStateToProps(state) {
-  return { program: _selectMergedProgram(state) }
+  return {
+    engineProgram: state.engineProgram,
+    program: _selectMergedProgram(state),
+  }
 }
 
 function mapDispatchToProps(dispatch) {
