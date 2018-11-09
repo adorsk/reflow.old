@@ -101,18 +101,13 @@ class Program extends React.Component {
             restrict: false,
             autoScroll: true,
             onmove: (dragEvent) => {
-              // have 
-              const currentUiState = _.get(this.props.program.procs, [proc.id, 'uiState'])
-              const currentPos = currentUiState.position
-              this.props.actions.proc.update({
-                id: proc.id,
+              const currentPos = _.get(this.props.program.procs, [proc.id, 'uiState', 'position'])
+              this.props.actions.updateProcUiState({
+                procId: proc.id,
                 updates: {
-                  uiState: {
-                    ...currentUiState,
-                    position: {
-                      x: currentPos.x + dragEvent.dx,
-                      y: currentPos.y + dragEvent.dy
-                    }
+                  position: {
+                    x: currentPos.x + dragEvent.dx,
+                    y: currentPos.y + dragEvent.dy
                   }
                 }
               })

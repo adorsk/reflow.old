@@ -7,9 +7,12 @@
     "lodash": "^4.17.11",
     "react": "^16.6.0",
     "react-dom": "^16.6.0",
+    "react-redux": "^5.1.0",
     "react-scripts": "2.0.5",
     "react-select": "^2.1.1",
     "redbox-react": "^1.6.0",
+    "redux": "^4.0.1",
+    "redux-thunk": "^2.3.0",
     "reflow-engine": "../reflow-engine",
     "reselect": "^4.0.0"
   },
