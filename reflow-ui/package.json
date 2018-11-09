@@ -11,7 +11,6 @@
     "react-select": "^2.1.1",
     "redbox-react": "^1.6.0",
     "reflow-engine": "../reflow-engine",
-    "reflow-store": "../reflow-store",
     "reselect": "^4.0.0"
   },
   "scripts": {
