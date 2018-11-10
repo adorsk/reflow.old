@@ -177,13 +177,13 @@ class Program extends React.Component {
     _.each(this.props.program.wires, (wire) => {
       const { src, dest } = wire
       const srcProcRef = this.procRefs[src.procId]
-      const srcHandlePos = srcProcRef.getPortPosition({portId: src.portId})
+      const srcPortPos = srcProcRef.getPortPosition({portId: src.portId})
       const destProcRef = this.procRefs[dest.procId]
-      const destHandlePos = destProcRef.getPortPosition({portId: dest.portId})
+      const destPortPos = destProcRef.getPortPosition({portId: dest.portId})
       const wireRef = this.wireRefs[wire.id]
       wireRef.setPositions({
-        src: srcHandlePos,
-        dest: destHandlePos,
+        src: srcPortPos,
+        dest: destPortPos,
       })
     })
   }

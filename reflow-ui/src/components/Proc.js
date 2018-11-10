@@ -6,7 +6,7 @@ import Port from './Port.js'
 class Proc extends React.Component {
   constructor (props) {
     super(props)
-    this.ioHandleRefs = {}
+    this.portRefs = {}
     this.labelRef = React.createRef()
     this.interfaceContainerRef = React.createRef()
     this.procInstance = null
@@ -47,13 +47,13 @@ class Proc extends React.Component {
           <div key="body" className='proc-body'>
             {this.renderActionButtons()}
             <div>
-              {this.renderInputHandles()}
+              {this.renderInputPorts()}
               {
                 (proc.importStatus === 'IMPORTED')
                   ? this.renderProcInterface()
                   : `importStatus: ${proc.importStatus}`
               }
-              {this.renderOutputHandles()}
+              {this.renderOutputPorts()}
             </div>
           </div>
         </div>
@@ -81,23 +81,23 @@ class Proc extends React.Component {
     this.props.setOutputValues({outputValues})
   }
 
-  renderInputHandles () {
+  renderInputPorts () {
     return this.renderPortGroup({
       groupType: 'input',
-      ioDefs: this.props.proc.inputs,
+      portDefs: this.props.proc.inputs,
     })
   }
 
-  renderPortGroup ({groupType, ioDefs}) {
+  renderPortGroup ({groupType, portDefs}) {
     return (
-      <div className={`io-handles ${groupType}-handles`}>
+      <div className={`io-ports ${groupType}-ports`}>
         {
-          _.sortBy(ioDefs.handles, 'position')
-            .map((handleDef) => {
+          _.sortBy(portDefs.ports, 'position')
+            .map((portDef) => {
               return this.renderPort({
-                handleDef,
+                portDef,
                 ioType: groupType,
-                value: ioDefs.values[handleDef.id],
+                value: portDefs.values[portDef.id],
               })
             })
         }
@@ -105,27 +105,27 @@ class Proc extends React.Component {
     )
   }
 
-  renderPort ({handleDef, ioType, value}) {
+  renderPort ({portDef, ioType, value}) {
     return (
       <Port
-        key={handleDef.id}
-        handleDef={handleDef}
+        key={portDef.id}
+        portDef={portDef}
         value={value}
         ioType={ioType}
         afterMount={(el) => {
-          this.ioHandleRefs[handleDef.id] = el
+          this.portRefs[portDef.id] = el
         }}
         beforeUnmount={(el) => {
-          delete this.ioHandleRefs[handleDef.id]
+          delete this.portRefs[portDef.id]
         }}
       />
     )
   }
 
-  renderOutputHandles () {
+  renderOutputPorts () {
     return this.renderPortGroup({
       groupType: 'output',
-      ioDefs: this.props.proc.outputs,
+      portDefs: this.props.proc.outputs,
     })
   }
 
@@ -180,9 +180,9 @@ class Proc extends React.Component {
     if (this.props.beforeUnmount) { this.props.beforeUnmount(this) }
   }
 
-  getPortPosition ({ioType, ioId}) {
-    if (! this.ioHandleRefs[ioId]) { return null }
-    return this.ioHandleRefs[ioId].getPosition()
+  getPortPosition ({ioType, portId}) {
+    if (! this.portRefs[portId]) { return null }
+    return this.portRefs[portId].getPosition()
   }
 }
 
