@@ -1,25 +1,19 @@
 class Generator {
-  constructor () {
-    this.state = {
-      emitting: false,
-      numToEmit: 0,
-      counter: 0,
-    }
-  }
-
-  tick ({inputs, prevInputs, updateOutputs, resolve}) {
+  tick ({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
     if (inputs.COUNT && (inputs.COUNT !== prevInputs.COUNT)) {
-      this.state.emitting = true
-      this.state.numToEmit = inputs.COUNT.data
-      this.state.counter = 0
+      updateState({
+        emitting: true,
+        numToEmit: inputs.COUNT.data,
+        counter: 0
+      })
     }
-    if (this.state.emitting) {
-      if (this.state.counter >= this.state.numToEmit) {
-        this.state.emitting = false
+    if (state.emitting) {
+      if (state.counter >= state.numToEmit) {
+        updateState({emitting: false})
         resolve()
       } else {
-        updateOutputs({OUT: {data: this.state.counter}})
-        this.state.counter += 1
+        updateOutputs({OUT: {data: state.counter}})
+        updateState({counter: state.counter + 1})
       }
     }
   }

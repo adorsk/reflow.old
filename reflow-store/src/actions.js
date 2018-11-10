@@ -30,6 +30,10 @@ actions.proc = {
     type: actionTypes.proc.updateOutputs,
     payload: {id, updates}
   }),
+  updateState: ({id, updates}) => ({
+    type: actionTypes.proc.updateState,
+    payload: {id, updates}
+  }),
 }
 
 actions.wire = {

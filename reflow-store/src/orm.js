@@ -21,7 +21,11 @@ export class Proc extends Model {
   static reducer (action, Proc) {
     const { payload, type } = action
     if (type === actionTypes.proc.create) {
-      Proc.create(payload)
+      Proc.create({
+        outputs: {},
+        state: {},
+        ...payload
+      })
     } else if (type === actionTypes.proc.update) {
       const { id, updates } = payload
       Proc.withId(id).update(updates)
@@ -32,6 +36,10 @@ export class Proc extends Model {
       const { id, updates } = payload
       const proc = Proc.withId(id)
       proc.update({outputs: Object.assign({}, proc.outputs, updates)})
+    } else if (type === actionTypes.proc.updateState) {
+      const { id, updates } = payload
+      const proc = Proc.withId(id)
+      proc.update({state: Object.assign({}, proc.state, updates)})
     }
   }
 }

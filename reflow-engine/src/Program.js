@@ -126,6 +126,7 @@ class Program {
 
   _tickProc ({proc}) {
     proc.component.tick({
+      state: _.get(proc, ['state'], {}),
       inputs: _.get(proc, ['inputs'], {}),
       prevInputs: _.get(this._prevProcs, [proc.id, 'inputs'], {}),
       updateOutputs: (updates) => {
@@ -134,6 +135,9 @@ class Program {
       resolve: () => {
         this._updateProcStatus({procId: proc.id, status: 'RESOLVED'})
       },
+      updateState: (updates) => {
+        this._updateProcState({procId: proc.id, updates})
+      }
     })
   }
 
@@ -142,6 +146,10 @@ class Program {
       id: procId,
       updates: {status}
     })
+  }
+
+  _updateProcState ({procId, updates}) {
+    return this.store.actions.proc.updateState({id: procId, updates: updates})
   }
 }
 

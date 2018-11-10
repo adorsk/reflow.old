@@ -17,7 +17,7 @@ actionTypes.program = _generatePrefixedActionTypes({
 
 actionTypes.proc = _generatePrefixedActionTypes({
   prefix: 'proc',
-  actionTypes: [...crudActionTypes, 'updateOutputs'],
+  actionTypes: [...crudActionTypes, 'updateOutputs', 'updateState'],
 })
 
 actionTypes.wire = _generatePrefixedActionTypes({
