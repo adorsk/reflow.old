@@ -69,7 +69,14 @@ const _selectInputsForProc = ({procId, incomingWires, outputsByProcId}) => {
     const newestPacket = _.maxBy(packets, 'idx')
     inputsForProc[portId] = newestPacket
   })
+  inputsForProc['__version'] = _computeInputsVersion(inputsForProc)
   return inputsForProc
+}
+
+const _computeInputsVersion = (inputs) => {
+  return _.keys(inputs).sort().map((key) => {
+    return [key, _.get(inputs, [key, 'idx'], '')].join(':')
+  }).join(';')
 }
 
 selectors.inputsByProcId = createSelector(

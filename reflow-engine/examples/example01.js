@@ -7,7 +7,6 @@ export const createProgramEngine = (opts = {}) => {
   progEngine.addProc({
     id: 'generate',
     tickFn ({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
-      console.log('ticko', 'generate')
       if (inputs.COUNT && (inputs.COUNT !== prevInputs.COUNT)) {
         updateState({
           emitting: true,
@@ -38,7 +37,6 @@ export const createProgramEngine = (opts = {}) => {
   progEngine.addProc({
     id: 'receive',
     tickFn ({inputs, prevInputs, resolve}) {
-      console.log('ticko receive')
       if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
         const packet = inputs.IN
         if (packet.type === 'OPEN') {

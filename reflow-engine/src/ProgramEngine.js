@@ -8,6 +8,7 @@ import Resolver from './Resolver.js'
 
 const Statuses = {
   RESOLVED: 'RESOLVED',
+  RUNNING: 'RUNNING',
 }
 
 class ProgramEngine {
@@ -132,11 +133,16 @@ class ProgramEngine {
 
   _tickProc ({proc}) {
     if (! proc.tickFn) { return }
-    // if (proc.status === Statuses.RESOLVED) { return }
+    const inputs = _.get(proc, ['inputs'], {})
+    const prevInputs = _.get(this._prevProcs, [proc.id, 'inputs'], {})
+    const inputsUnchanged = (inputs.__version === prevInputs.__version)
+    const isResolved = (proc.status === Statuses.RESOLVED)
+    if (inputsUnchanged && isResolved) { return }
+    this._updateProcStatus({procId: proc.id, status: Statuses.RUNNING})
     proc.tickFn({
       state: _.get(proc, ['state'], {}),
       inputs: _.get(proc, ['inputs'], {}),
-      prevInputs: _.get(this._prevProcs, [proc.id, 'inputs'], {}),
+      prevInputs,
       updateOutputs: (updates) => {
         this._updateProcOutputs({procId: proc.id, updates})
       },
