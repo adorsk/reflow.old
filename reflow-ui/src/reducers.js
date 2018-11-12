@@ -1,7 +1,7 @@
 import { actionTypes } from './actions.js'
 
 const initialState = {
-  engineProgram: null,
+  programEngine: null,
   engineState: {},
   procUiStates: {},
 }
@@ -11,7 +11,7 @@ export const rootReducer = (state = initialState, action) => {
   if (type === actionTypes.setEngineProgram) {
     state = {
       ...state,
-      engineProgram: payload.engineProgram
+      programEngine: payload.programEngine
     }
   }
   else if (type === actionTypes.setEngineState) {

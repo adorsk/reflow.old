@@ -1,13 +1,13 @@
 export const actionTypes = {
-  setEngineProgram: 'setEngineProgram',
+  setProgramEngine: 'setProgramEngine',
   setEngineState: 'setEngineState',
   updateProcUiState: 'updateProcUiState',
 }
 
 export const actionCreators = {}
-actionCreators.setEngineProgram = ({engineProgram}) => ({
-  type: actionTypes.setEngineProgram,
-  payload: {engineProgram}
+actionCreators.setProgramEngine = ({programEngine}) => ({
+  type: actionTypes.setProgramEngine,
+  payload: {programEngine}
 })
 actionCreators.setEngineState = ({engineState}) => ({
   type: actionTypes.setEngineState,

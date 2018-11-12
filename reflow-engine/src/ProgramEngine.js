@@ -9,7 +9,7 @@ const Statuses = {
   RESOLVED: 'RESOLVED',
 }
 
-class Program {
+class ProgramEngine {
   constructor (opts = {}) {
     this._prevProcs = {}
     this.store = opts.store || this._createStore()
@@ -153,4 +153,4 @@ class Program {
   }
 }
 
-export default Program
+export default ProgramEngine

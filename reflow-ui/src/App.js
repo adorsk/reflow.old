@@ -2,7 +2,7 @@ import React from 'react'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import _ from 'lodash'
-import { createProgram } from 'reflow-engine/examples/example01.js'
+import { createProgramEngine } from 'reflow-engine/examples/example01.js'
 import { actionCreators } from './actions.js'
 import Program from './components/Program.js'
 
@@ -24,25 +24,25 @@ class App extends React.Component {
   }
 
   componentDidMount () {
-    if (! this.props.engineProgram) {
-      this._setupEngineProgram()
+    if (! this.props.programEngine) {
+      this._setupProgramEngine()
     }
   }
 
-  _setupEngineProgram () {
-    const engineProgram = createProgram()
-    this.props.actions.setEngineProgram({engineProgram})
-    const initialEngineState = engineProgram.store.getDerivedState()
+  _setupProgramEngine () {
+    const programEngine = createProgramEngine()
+    this.props.actions.setProgramEngine({programEngine})
+    const initialEngineState = programEngine.store.getDerivedState()
     this._setInitialProcPositions({
       procIds: _.keys(_.get(initialEngineState, ['program', 'procs'], {}))
     })
     this.props.actions.setEngineState({engineState: initialEngineState})
-    engineProgram.store.subscribe(_.debounce(() => {
+    programEngine.store.subscribe(_.debounce(() => {
       this.props.actions.setEngineState({
-        engineState: engineProgram.store.getDerivedState()
+        engineState: programEngine.store.getDerivedState()
       })
     }), 0)
-    engineProgram.run()
+    programEngine.run()
   }
 
   _setInitialProcPositions ({procIds}) {
@@ -82,7 +82,7 @@ function _selectMergedProgram ({engineState, procUiStates}) {
 
 function mapStateToProps(state) {
   return {
-    engineProgram: state.engineProgram,
+    programEngine: state.programEngine,
     program: _selectMergedProgram(state),
   }
 }

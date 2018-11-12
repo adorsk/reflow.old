@@ -1,39 +1,39 @@
-import Program from './../src/Program.js'
+import ProgramEngine from './../src/ProgramEngine.js'
 import components from './components/index.js'
 
-export const createProgram = (opts = {}) => {
+export const createProgramEngine = (opts = {}) => {
   const programArgs = opts.programArgs || []
-  const prog = new Program(...programArgs)
-  prog.addProc({
+  const progEngine = new ProgramEngine(...programArgs)
+  progEngine.addProc({
     id: 'generate',
     component: components.generator.getInstance()
   })
-  prog.addProc({
+  progEngine.addProc({
     id: 'copy',
     component: components.copier.getInstance()
   })
-  prog.addProc({
+  progEngine.addProc({
     id: 'receive',
     component: components.receiver.getInstance()
   })
-  prog.addWire({
+  progEngine.addWire({
     src: { procId: 'generate', portId: 'OUT' },
     dest: { procId: 'copy', portId: 'IN' },
   })
-  prog.addWire({
+  progEngine.addWire({
     src: { procId: 'copy', portId: 'OUT' },
     dest: { procId: 'receive', portId: 'IN' },
   })
-  prog.sendInputsToProc({
+  progEngine.sendInputsToProc({
     procId: 'generate',
     inputs: {'COUNT': {data: 3}}
   })
-  return prog
+  return progEngine
 }
 
 if (typeof require != 'undefined' && require.main == module) {
-  const prog = createProgram()
-  prog.run().then(() => {
+  const progEngine = createProgramEngine()
+  progEngine.run().then(() => {
     console.log('done!')
   })
 }
