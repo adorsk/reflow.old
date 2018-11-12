@@ -1,4 +1,4 @@
-import ProgramEngine from './../src/ProgramEngine.js'
+import ProgramEngine from '../../src/ProgramEngine.js'
 
 
 export const createProgramEngine = (opts = {}) => {

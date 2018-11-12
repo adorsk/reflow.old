@@ -1,4 +1,4 @@
-import ProgramEngine from './../src/ProgramEngine.js'
+import ProgramEngine from '../../src/ProgramEngine.js'
 
 export async function createProgramEngine (opts = {}) {
   const programArgs = opts.programArgs || []
@@ -9,10 +9,10 @@ export async function createProgramEngine (opts = {}) {
       value: {
         id: 'proc1',
         tickFnSpec: {
-          type: 'inline',
-          value: (opts) => {
-            console.log('proc1.tickFn!')
-            opts.resolve()
+          type: 'fn',
+          fn: async () => {
+            const module = await import('./myComponent.js')
+            return module.tickFn
           }
         }
       }
