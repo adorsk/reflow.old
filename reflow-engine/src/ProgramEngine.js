@@ -3,6 +3,7 @@ import Store from 'reflow-store/src/Store.js'
 
 import * as constants from './constants.js'
 import NoopComponent from './components/Noop.js'
+import Resolver from './Resolver.js'
 
 
 const Statuses = {
@@ -13,6 +14,7 @@ class ProgramEngine {
   constructor (opts = {}) {
     this._prevProcs = {}
     this.store = opts.store || this._createStore()
+    this.resolver = opts.resolver || this._createResolver()
     this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
     this._tickCounter = 0
@@ -21,6 +23,10 @@ class ProgramEngine {
 
   _createStore () {
     return new Store()
+  }
+
+  _createResolver () {
+    return new Resolver()
   }
 
   _addRootProc () {
@@ -125,7 +131,9 @@ class ProgramEngine {
   }
 
   _tickProc ({proc}) {
-    proc.component.tick({
+    if (! proc.tickFn) { return }
+    // if (proc.status === Statuses.RESOLVED) { return }
+    proc.tickFn({
       state: _.get(proc, ['state'], {}),
       inputs: _.get(proc, ['inputs'], {}),
       prevInputs: _.get(this._prevProcs, [proc.id, 'inputs'], {}),
@@ -133,7 +141,7 @@ class ProgramEngine {
         this._updateProcOutputs({procId: proc.id, updates})
       },
       resolve: () => {
-        this._updateProcStatus({procId: proc.id, status: 'RESOLVED'})
+        this._updateProcStatus({procId: proc.id, status: Statuses.RESOLVED})
       },
       updateState: (updates) => {
         this._updateProcState({procId: proc.id, updates})
@@ -150,6 +158,14 @@ class ProgramEngine {
 
   _updateProcState ({procId, updates}) {
     return this.store.actions.proc.updateState({id: procId, updates: updates})
+  }
+
+  async resolveProcFromSpec({procSpec}) {
+    const proc = await this.resolver.resolve({spec: procSpec})
+    if (!proc.tickFn && proc.tickFnSpec) {
+      proc.tickFn = await this.resolver.resolve({spec: proc.tickFnSpec})
+    }
+    return proc
   }
 }
 
