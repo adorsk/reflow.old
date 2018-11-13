@@ -113,21 +113,20 @@ class ProgramEngine {
   async _ensureProcTickFns() {
     this.updateDerivedState()
     const procs = this.derivedState.program.procs
-    const loadTickFnPromises = _.values(procs).map((proc) => {
+    const tickFnPromises = _.values(procs).map(async (proc) => {
       try {
         const component = proc.component
-        if (component.tickFn || (proc.id === constants.rootProcId)) {
-          return Promise.resolve()
+        if (component && component.getTickFn) {
+          proc.component.tickFn = await component.getTickFn()
         }
-        return Promise.resolve(component.loadTickFn())
       } catch (e) {
-        return Promise.reject(
+        throw new Error(
           `Could not resolve tickFn for proc ${proc.id}.`
           + ` Error was: ${e}`
         )
       }
     })
-    return Promise.all(loadTickFnPromises)
+    return Promise.all(tickFnPromises)
   }
 
   _tick({derivedState = {}}) {

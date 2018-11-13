@@ -1,7 +1,9 @@
 class MyComponent {
-  async loadTickFn () {
-    const module = await import('./tickFn.js')
-    this.tickFn = module.default
+  async getTickFn () {
+    if (! this._tickFnModule) {
+      this._tickFnModule = await import('./tickFn.js')
+    }
+    return this._tickFnModule.default
   }
 }
 
