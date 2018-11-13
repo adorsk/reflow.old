@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import Store from 'reflow-store/src/Store.js'
 
 import * as constants from './constants.js'
 import NoopComponent from './components/Noop.js'
+import Store from './store/Store.js'
 import Resolver from './Resolver.js'
 
 
