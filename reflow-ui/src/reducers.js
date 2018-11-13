@@ -8,7 +8,7 @@ const initialState = {
 
 export const rootReducer = (state = initialState, action) => {
   const { type, payload } = action
-  if (type === actionTypes.setEngineProgram) {
+  if (type === actionTypes.setProgramEngine) {
     state = {
       ...state,
       programEngine: payload.programEngine
