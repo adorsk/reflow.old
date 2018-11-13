@@ -90,6 +90,7 @@ class Program extends React.Component {
       <Proc
         key={proc.id}
         proc={proc}
+        actions={this.props.actions}
         style={{
           position: 'absolute',
           left: _.get(uiState, ['position', 'x'], 0),
@@ -115,10 +116,6 @@ class Program extends React.Component {
           })
         }}
         beforeUnmount={() => { delete this.procRefs[proc.id] }}
-        setOutputValues={({outputValues}) => {
-          console.log('setOutputValues')
-        }}
-        loadWidget={() => console.log('loadWidget')}
       />
     )
   }

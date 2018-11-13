@@ -70,14 +70,14 @@ class ProgramEngine {
         },
         dest: {procId, portId}
       })
-      this._updateProcOutputs({
+      this.updateProcOutputs({
         procId: constants.rootProcId,
         updates: { [rootProcPortId]: packet }
       })
     }
   }
 
-  _updateProcOutputs ({procId, updates}) {
+  updateProcOutputs ({procId, updates}) {
     const updatesWithIdxs = _.mapValues(updates, (packet) => {
       return {packet: {...packet, idx: this._packetCounter++}}
     })
@@ -164,7 +164,7 @@ class ProgramEngine {
       inputs: _.get(proc, ['inputs'], {}),
       prevInputs,
       updateOutputs: (updates) => {
-        this._updateProcOutputs({procId: proc.id, updates})
+        this.updateProcOutputs({procId: proc.id, updates})
       },
       resolve: () => {
         this._updateProcStatus({procId: proc.id, status: Statuses.RESOLVED})

@@ -4,6 +4,7 @@ const initialState = {
   programEngine: null,
   engineState: {},
   procUiStates: {},
+  procWidgetStates: {},
 }
 
 export const rootReducer = (state = initialState, action) => {
@@ -27,6 +28,16 @@ export const rootReducer = (state = initialState, action) => {
       procUiStates: {
         ...state.procUiStates,
         [procId]: Object.assign({}, state.procUiStates[procId], updates)
+      }
+    }
+  }
+  else if (type === actionTypes.updateProcWidgetState) {
+    const { procId, updates } = payload
+    state = {
+      ...state,
+      procWidgetStates: {
+        ...state.procWidgetStates,
+        [procId]: Object.assign({}, state.procWidgetStates[procId], updates)
       }
     }
   }

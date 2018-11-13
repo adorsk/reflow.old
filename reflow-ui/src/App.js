@@ -2,9 +2,11 @@ import React from 'react'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import _ from 'lodash'
-import { createProgramEngine } from 'reflow-engine/examples/example-01-basic/entrypoint.js'
+
 import { actionCreators } from './actions.js'
 import Program from './components/Program.js'
+
+import { createProgramEngine } from './examples/e01-TextInput/index.js'
 
 
 class App extends React.Component {
@@ -18,9 +20,9 @@ class App extends React.Component {
   }
 
   renderProgram () {
-    const { program } = this.props
+    const program = this.props.program
     if (! program) { return null }
-    return (<Program program={program} actions={this.props.actions} />)
+    return (<Program actions={this.props.actions} program={program} />)
   }
 
   componentDidMount () {
@@ -66,7 +68,7 @@ class App extends React.Component {
   }
 }
 
-function _selectMergedProgram ({engineState, procUiStates}) {
+function _selectMergedProgram ({engineState, procUiStates, procWidgetStates}) {
   const engineStateProgram = engineState.program
   if (! engineStateProgram) { return null }
   return {
@@ -74,7 +76,8 @@ function _selectMergedProgram ({engineState, procUiStates}) {
     procs: _.mapValues(engineStateProgram.procs, (proc) => {
       return {
         ...proc,
-        uiState: _.get(procUiStates, [proc.id], {})
+        uiState: _.get(procUiStates, [proc.id], {}),
+        widgetState: _.get(procWidgetStates, [proc.id], {}),
       }
     })
   }
