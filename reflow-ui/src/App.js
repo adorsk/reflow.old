@@ -2,7 +2,7 @@ import React from 'react'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import _ from 'lodash'
-import { createProgramEngine } from 'reflow-engine/examples/example01.js'
+import { createProgramEngine } from 'reflow-engine/examples/example-01-basic/entrypoint.js'
 import { actionCreators } from './actions.js'
 import Program from './components/Program.js'
 

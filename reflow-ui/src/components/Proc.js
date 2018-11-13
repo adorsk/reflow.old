@@ -2,14 +2,14 @@ import React from 'react'
 import _ from 'lodash'
 
 import Port from './Port.js'
+import Widget from './Widget.js'
 
 class Proc extends React.Component {
   constructor (props) {
     super(props)
     this.portRefs = {}
     this.labelRef = React.createRef()
-    this.interfaceContainerRef = React.createRef()
-    this.procInstance = null
+    this.widgetContainerRef = React.createRef()
   }
 
   render () {
@@ -45,40 +45,13 @@ class Proc extends React.Component {
             {proc.label || proc.id}
           </label>
           <div key="body" className='proc-body'>
-            {this.renderActionButtons()}
-            <div>
-              {this.renderInputPorts()}
-              {
-                (proc.importStatus === 'IMPORTED')
-                  ? this.renderProcInterface()
-                  : `importStatus: ${proc.importStatus}`
-              }
-              {this.renderOutputPorts()}
-            </div>
+            {this.renderInputPorts()}
+            {this.renderWidget()}
+            {this.renderOutputPorts()}
           </div>
         </div>
       </div>
     )
-  }
-
-  renderActionButtons () {
-    return (
-      <div className='proc-actions'>
-        <button onClick={() => { this.runProc() }}>
-          run
-        </button>
-      </div>
-    )
-  }
-
-  runProc () {
-    const outputValues = (
-      this.procInstance.run({
-        inputValues: _.get(this.props.proc, ['inputs', 'values'], {})
-      })
-      || {}
-    )
-    this.props.setOutputValues({outputValues})
   }
 
   renderInputPorts () {
@@ -129,54 +102,22 @@ class Proc extends React.Component {
     })
   }
 
-  renderProcInterface () {
+  renderWidget () {
+    const proc = this.props.proc
     return (
       <div
-        ref={this.interfaceContainerRef}
-        className='proc-interface-container'>
-        TK: Proc Interface
+        ref={this.widgetContainerRef}
+        className='proc-widget-container'>
+        <Widget proc={proc} />
       </div>
     )
   }
 
   componentDidMount () {
-    const { proc } = this.props
-    if (proc) {
-      if (proc.importStatus === 'IMPORTED') {
-        this.initializeProc()
-      } else {
-        this.props.loadWidget({id: proc.id})
-      }
-    }
     if (this.props.afterMount) { this.props.afterMount(this) }
   }
 
-  componentDidUpdate (prevProps) {
-    const didImport = (
-      (prevProps.proc.importStatus === 'IMPORTING')
-      && (this.props.proc.importStatus === 'IMPORTED')
-    )
-    if (didImport) {
-      this.initializeProc()
-      return
-    }
-    const inputValuesPath = ['proc', 'inputs', 'values']
-    const inputValues = _.get(this.props, inputValuesPath)
-    const prevInputValues = _.get(prevProps, inputValuesPath)
-    const inputValuesHaveChanged = (! _.isEqual(inputValues, prevInputValues))
-    if (inputValuesHaveChanged) { this.runProc() }
-  }
-
-  initializeProc () {
-    const module = this.props.proc.module
-    this.procInstance = module.factory()
-    this.procInstance.renderInto({parentNode: this.interfaceContainerRef.current})
-  }
-
   componentWillUnmount () {
-    if (this.procInstance && this.procInstance.destroy) {
-      this.procInstance.destroy()
-    }
     if (this.props.beforeUnmount) { this.props.beforeUnmount(this) }
   }
 
