@@ -1,4 +1,4 @@
-export function tickFn (opts) {
+export default function tickFn (opts) {
   console.log('myComponent.tickFn!')
   opts.resolve()
 }

@@ -8,11 +8,11 @@ export async function createProgramEngine (opts = {}) {
       type: 'inline',
       value: {
         id: 'proc1',
-        tickFnSpec: {
+        componentSpec: {
           type: 'fn',
           fn: async () => {
             const module = await import('./myComponent.js')
-            return module.tickFn
+            return module.default
           }
         }
       }

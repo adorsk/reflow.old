@@ -87,9 +87,10 @@ class ProgramEngine {
     })
   }
 
-  run () {
+  async run () {
     console.log('run')
     const keepAliveTimer = setInterval(() => null, 100)
+    await this._ensureProcTickFns()
     const runPromise = new Promise((resolve, reject) => {
       this.store.subscribe(_.debounce(() => {
         this.updateDerivedState()
@@ -99,7 +100,6 @@ class ProgramEngine {
           this._tick({derivedState: this.derivedState})
         }
       }, 0))
-      // initial tick
       this.updateDerivedState()
       this._tick({derivedState: this.derivedState})
     })
@@ -108,6 +108,26 @@ class ProgramEngine {
       clearInterval(keepAliveTimer)
       return args
     })
+  }
+
+  async _ensureProcTickFns() {
+    this.updateDerivedState()
+    const procs = this.derivedState.program.procs
+    const loadTickFnPromises = _.values(procs).map((proc) => {
+      try {
+        const component = proc.component
+        if (component.tickFn || (proc.id === constants.rootProcId)) {
+          return Promise.resolve()
+        }
+        return Promise.resolve(component.loadTickFn())
+      } catch (e) {
+        return Promise.reject(
+          `Could not resolve tickFn for proc ${proc.id}.`
+          + ` Error was: ${e}`
+        )
+      }
+    })
+    return Promise.all(loadTickFnPromises)
   }
 
   _tick({derivedState = {}}) {
@@ -132,14 +152,15 @@ class ProgramEngine {
   }
 
   _tickProc ({proc}) {
-    if (! proc.tickFn) { return }
+    const tickFn = _.get(proc, ['component', 'tickFn'])
+    if (! tickFn) { return }
     const inputs = _.get(proc, ['inputs'], {})
     const prevInputs = _.get(this._prevProcs, [proc.id, 'inputs'], {})
     const inputsUnchanged = (inputs.__version === prevInputs.__version)
     const isResolved = (proc.status === Statuses.RESOLVED)
     if (inputsUnchanged && isResolved) { return }
     this._updateProcStatus({procId: proc.id, status: Statuses.RUNNING})
-    proc.tickFn({
+    tickFn({
       state: _.get(proc, ['state'], {}),
       inputs: _.get(proc, ['inputs'], {}),
       prevInputs,
@@ -168,8 +189,8 @@ class ProgramEngine {
 
   async resolveProcFromSpec({procSpec}) {
     const proc = await this.resolver.resolve({spec: procSpec})
-    if (!proc.tickFn && proc.tickFnSpec) {
-      proc.tickFn = await this.resolver.resolve({spec: proc.tickFnSpec})
+    if (!proc.component && proc.componentSpec) {
+      proc.component = await this.resolver.resolve({spec: proc.componentSpec})
     }
     return proc
   }

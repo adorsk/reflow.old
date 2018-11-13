@@ -6,48 +6,54 @@ export const createProgramEngine = (opts = {}) => {
   const progEngine = new ProgramEngine(...programArgs)
   progEngine.addProc({
     id: 'generate',
-    tickFn ({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
-      if (inputs.COUNT && (inputs.COUNT !== prevInputs.COUNT)) {
-        updateState({
-          emitting: true,
-          numToEmit: inputs.COUNT.data,
-          counter: 0
-        })
-      }
-      if (state.emitting) {
-        if (state.counter >= state.numToEmit) {
-          updateState({emitting: false})
+    component: {
+      tickFn ({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
+        if (inputs.COUNT && (inputs.COUNT !== prevInputs.COUNT)) {
+          updateState({
+            emitting: true,
+            numToEmit: inputs.COUNT.data,
+            counter: 0
+          })
+        }
+        if (state.emitting) {
+          if (state.counter >= state.numToEmit) {
+            updateState({emitting: false})
+            resolve()
+          } else {
+            updateOutputs({OUT: {data: state.counter}})
+            updateState({counter: state.counter + 1})
+          }
+        }
+      },
+    }
+  })
+  progEngine.addProc({
+    id: 'copy',
+    component: {
+      tickFn ({inputs, prevInputs, updateOutputs, resolve}) {
+        if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
+          updateOutputs({'OUT': {data: inputs.IN.data}})
           resolve()
-        } else {
-          updateOutputs({OUT: {data: state.counter}})
-          updateState({counter: state.counter + 1})
         }
       }
     },
   })
   progEngine.addProc({
-    id: 'copy',
-    tickFn ({inputs, prevInputs, updateOutputs, resolve}) {
-      if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
-        updateOutputs({'OUT': {data: inputs.IN.data}})
-        resolve()
-      }
-    }
-  })
-  progEngine.addProc({
     id: 'receive',
-    tickFn ({inputs, prevInputs, resolve}) {
-      if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
-        const packet = inputs.IN
-        if (packet.type === 'OPEN') {
-          console.log('open')
-        }
-        else if (packet.type == 'CLOSE') {
-          console.log('close')
-        }
-        else {
-          console.log('data ', packet.data)
-          resolve()
+    component: {
+      tickFn ({inputs, prevInputs, resolve}) {
+        if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
+          const packet = inputs.IN
+          if (packet.type === 'OPEN') {
+            console.log('open')
+          }
+          else if (packet.type == 'CLOSE') {
+            console.log('close')
+          }
+          else {
+            console.log('data ', packet.data)
+            resolve()
+          }
         }
       }
     }
