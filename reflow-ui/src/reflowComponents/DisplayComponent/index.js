@@ -2,6 +2,12 @@ class DisplayComponent {
   constructor () {
     this.id = this.label = 'Display'
     this._widgetFactory = null
+    this.ports = {
+      inputs: [
+        {id: 'IN'},
+        {id: 'displayFn'},
+      ]
+    }
   }
 
   async createWidget (...args) {

@@ -4,10 +4,13 @@ class DisplayWidget {
   }
 
   update ({proc}) {
-    console.log('update')
     if (!(proc) || !(proc.inputs) || !(proc.inputs.displayFn)) { return }
-    const displayFn = new Function('container', 'IN', proc.inputs.displayFn)
-    displayFn(this.container, proc.inputs.IN)
+    try {
+      const displayFn = new Function('container', 'IN', proc.inputs.displayFn.data)
+      displayFn(this.container, proc.inputs.IN)
+    } catch (err) {
+      this.container.innerHTML = `Error: ${err}`
+    }
   }
 }
 

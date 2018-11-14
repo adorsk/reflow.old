@@ -14,7 +14,7 @@ class AddWireForm extends React.Component {
 
   render () {
     const { selectedSrcOption, selectedDestOption } = this.state
-    const options = this._getOptionsForIoHandleInfos()
+    const options = this._getOptionsForPorts()
     return (
       <div>
         <span>
@@ -40,35 +40,55 @@ class AddWireForm extends React.Component {
     )
   }
 
-  _getOptionsForIoHandleInfos () {
-    const { ioHandleInfos } = this.props
-    const infosByIoType = _.groupBy(ioHandleInfos, 'ioType')
+  _getOptionsForPorts () {
+    const portsByIoType = this._selectPortsByIoType()
     const options = {}
-    _.each(infosByIoType, (infosForIoType, ioType) => {
-      options[ioType] = _.map(infosForIoType, (info) => {
-        return {value: info.id, label: info.id}
+    _.each(portsByIoType, (portsForIoType, ioType) => {
+      options[ioType] = _.map(portsForIoType, (port) => {
+        return {
+          label: ([
+            port.proc.id,(port.port.label || port.port.id)
+          ].join(':')),
+          value: port,
+        }
       })
     })
     return options
   }
 
+  _selectPortsByIoType () {
+    const { program } = this.props
+    const ioTypes = ['inputs', 'outputs']
+    const portsByIoType = {}
+    for (let ioType of ioTypes) { portsByIoType[ioType] = [] }
+    const procs = _.values(_.get(program, ['procs'], {}))
+    for (let proc of procs) {
+      const procPorts = _.get(proc, ['component', 'ports'], {})
+      for (let ioType of ioTypes) {
+        for (let port of _.get(procPorts, ioType, [])) {
+          portsByIoType[ioType].push({port, proc})
+        }
+      }
+    }
+    return portsByIoType
+  }
+
   _addWire () {
     const {selectedSrcOption, selectedDestOption} = this.state
-    const { ioHandleInfos } = this.props
-    const srcInfo = ioHandleInfos[selectedSrcOption.value]
-    const destInfo = ioHandleInfos[selectedDestOption.value]
-    if (! srcInfo || ! destInfo) { return }
-    this.props.addWire({
-      src: {
-        modId: srcInfo.modId,
-        ioType: srcInfo.ioType,
-        ioId: srcInfo.handle.id
-      },
-      dest: {
-        modId: destInfo.modId,
-        ioType: destInfo.ioType,
-        ioId: destInfo.handle.id
-      },
+    const srcPort = selectedSrcOption.value
+    const destPort = selectedDestOption.value
+    if (! srcPort || ! destPort) { return }
+    this.props.actions.addWire({
+      wire: {
+        src: {
+          procId: srcPort.proc.id,
+          portId: srcPort.port.id
+        },
+        dest: {
+          procId: destPort.proc.id,
+          portId: destPort.port.id
+        },
+      }
     })
   }
 }

@@ -55,24 +55,22 @@ class Proc extends React.Component {
   }
 
   renderInputPorts () {
-    return this.renderPortGroup({
-      groupType: 'input',
-      portDefs: this.props.proc.inputs,
-    })
+    return this.renderPortGroup({ioType: 'inputs'})
   }
 
-  renderPortGroup ({groupType, portDefs}) {
+  renderPortGroup ({ioType}) {
+    const proc = this.props.proc
+    const portDefs = _.get(proc, ['component', 'ports', `${ioType}`], [])
     return (
-      <div className={`io-ports ${groupType}-ports`}>
+      <div className={`io-ports ${ioType}-ports`}>
         {
-          _.sortBy(portDefs.ports, 'position')
-            .map((portDef) => {
-              return this.renderPort({
-                portDef,
-                ioType: groupType,
-                value: portDefs.values[portDef.id],
-              })
+          _.sortBy(portDefs, 'position').map((portDef) => {
+            return this.renderPort({
+              portDef,
+              ioType,
+              value: _.get(proc, [ioType, portDef.id]),
             })
+          })
         }
       </div>
     )
@@ -83,8 +81,8 @@ class Proc extends React.Component {
       <Port
         key={portDef.id}
         portDef={portDef}
-        value={value}
         ioType={ioType}
+        value={value}
         afterMount={(el) => {
           this.portRefs[portDef.id] = el
         }}
@@ -96,10 +94,7 @@ class Proc extends React.Component {
   }
 
   renderOutputPorts () {
-    return this.renderPortGroup({
-      groupType: 'output',
-      portDefs: this.props.proc.outputs,
-    })
+    return this.renderPortGroup({ioType: 'outputs'})
   }
 
   renderWidget () {

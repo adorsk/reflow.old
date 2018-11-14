@@ -9,13 +9,15 @@ class Port extends React.Component {
 
   render () {
     const { portDef, ioType, value } = this.props
-    const icon = (ioType === 'input') ? '▶' : '◀'
+    const icon = (ioType === 'inputs') ? '▶' : '◀'
     return (
       <div>
         <span ref={this.portRef}>
           {icon}
         </span>
-        <label>{portDef.id} [value: {JSON.stringify(value)}]</label>
+        <label>
+          {portDef.label || portDef.id} [value: {JSON.stringify(value)}]
+        </label>
       </div>
     )
   }

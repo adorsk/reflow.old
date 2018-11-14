@@ -49,5 +49,11 @@ actionCreators.addProcWithComponent = ({component}) => {
     programEngine.addProc(proc)
   }
 }
+actionCreators.addWire = ({wire}) => {
+  return (dispatch, getState) => {
+    const programEngine = getState().programEngine
+    programEngine.addWire(wire)
+  }
+}
 
 export default { actionTypes, actionCreators }
