@@ -4,7 +4,6 @@ import interact from 'interactjs'
 
 import Proc from './Proc.js'
 import Wire from './Wire.js'
-import AddWireForm from './AddWireForm.js'
 
 
 class Program extends React.Component {
@@ -21,9 +20,6 @@ class Program extends React.Component {
     if (! program) { return null } 
     return (
       <div className='program'>
-        <div>
-          {this._renderAddWireForm()}
-        </div>
         <div
           className='program-content-container'
           style={{position: 'relative'}}
@@ -32,15 +28,6 @@ class Program extends React.Component {
           {this.renderWires({wires: program.wires})}
         </div>
       </div>
-    )
-  }
-
-  _renderAddWireForm () {
-    return (
-      <AddWireForm
-        portInfos={this._getPortInfos()}
-        addWire={this._addWire.bind(this)}
-      />
     )
   }
 

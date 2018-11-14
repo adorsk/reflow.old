@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import _ from 'lodash'
 
 import { actionCreators } from './actions.js'
-import Program from './components/Program.js'
+import ProgramEditor from './components/ProgramEditor.js'
 
 import { createProgramEngine } from './examples/e01-TextInput/index.js'
 
@@ -13,16 +13,18 @@ class App extends React.Component {
   render () {
     return (
       <div>
-        App foo
-        {this.renderProgram()}
+        {this.renderProgramEditor()}
       </div>
     )
   }
 
-  renderProgram () {
-    const program = this.props.program
-    if (! program) { return null }
-    return (<Program actions={this.props.actions} program={program} />)
+  renderProgramEditor () {
+    return (
+      <ProgramEditor
+        actions={this.props.actions}
+        program={this.props.program}
+      />
+    )
   }
 
   componentDidMount () {
