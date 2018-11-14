@@ -38,7 +38,8 @@ class ProgramEngine {
     })
   }
 
-  addProc (proc) {
+  async addProc (proc) {
+    await this._ensureProcTickFns({procs: [proc]})
     this.store.actions.proc.create(proc)
   }
 
@@ -90,7 +91,8 @@ class ProgramEngine {
   async run () {
     console.log('run')
     const keepAliveTimer = setInterval(() => null, 100)
-    await this._ensureProcTickFns()
+    this.updateDerivedState()
+    await this._ensureProcTickFns({procs: this.derivedState.program.procs})
     const runPromise = new Promise((resolve, reject) => {
       this.store.subscribe(_.debounce(() => {
         this.updateDerivedState()
@@ -110,9 +112,7 @@ class ProgramEngine {
     })
   }
 
-  async _ensureProcTickFns() {
-    this.updateDerivedState()
-    const procs = this.derivedState.program.procs
+  async _ensureProcTickFns({procs}) {
     const tickFnPromises = _.values(procs).map(async (proc) => {
       try {
         const component = proc.component
