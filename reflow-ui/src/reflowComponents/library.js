@@ -1,8 +1,7 @@
+import DisplayComponent from './DisplayComponent/index.js'
+
 export const components = []
 
-components.push({
-  id: 'somecomponent',
-  label: 'somecomponent',
-})
+components.push(DisplayComponent)
 
 export default components
