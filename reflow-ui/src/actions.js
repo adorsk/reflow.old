@@ -3,6 +3,7 @@ export const actionTypes = {
   setEngineState: 'setEngineState',
   updateProcUiState: 'updateProcUiState',
   updateProcWidgetState: 'updateProcWidgetState',
+  updateComponentLibrary: 'updateComponentLibrary',
 }
 
 export const actionCreators = {}
@@ -22,6 +23,19 @@ actionCreators.updateProcWidgetState = ({procId, updates}) => ({
   type: actionTypes.updateProcWidgetState,
   payload: {procId, updates}
 })
+actionCreators.updateComponentLibrary = ({updates}) => ({
+  type: actionTypes.updateComponentLibrary,
+  payload: { updates }
+})
+actionCreators.loadComponentLibrary = () => {
+  return async (dispatch) => {
+    const libraryModule = await import('./reflowComponents/library.js')
+    dispatch(actionCreators.updateComponentLibrary({
+      updates: { components: libraryModule.components }
+    }))
+  }
+}
+
 actionCreators.updateProcOutputs = ({procId, updates}) => {
   return (dispatch, getState) => {
     const programEngine = getState().programEngine

@@ -1,4 +1,5 @@
 import React from 'react'
+import _ from 'lodash'
 
 import ComponentLibraryItem from './ComponentLibraryItem.js'
 
@@ -13,13 +14,7 @@ class ComponentLibrary extends React.Component {
   }
 
   _renderComponentLibraryItems () {
-    const fakeComponents = [1,2,3].map((i) => {
-      return {
-        id: i,
-        label: `component-${i}`,
-      }
-    })
-    const components = fakeComponents
+    const components = _.get(this.props.componentLibrary, 'components', [])
     return components.map((component) => this._renderComponentLibraryItem({component}))
   }
 

@@ -5,6 +5,7 @@ const initialState = {
   engineState: {},
   procUiStates: {},
   procWidgetStates: {},
+  componentLibrary: {},
 }
 
 export const rootReducer = (state = initialState, action) => {
@@ -38,6 +39,16 @@ export const rootReducer = (state = initialState, action) => {
       procWidgetStates: {
         ...state.procWidgetStates,
         [procId]: Object.assign({}, state.procWidgetStates[procId], updates)
+      }
+    }
+  }
+  else if (type === actionTypes.updateComponentLibrary) {
+    const { updates } = payload
+    state = {
+      ...state,
+      componentLibrary: {
+        ...state.componentLibrary,
+        ...updates
       }
     }
   }

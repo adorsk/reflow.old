@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import _ from 'lodash'
 
 import { actionCreators } from './actions.js'
-import ProgramEditor from './components/ProgramEditor.js'
+import ProgramEditor from './reactComponents/ProgramEditor.js'
 
 import { createProgramEngine } from './examples/e01-TextInput/index.js'
 
@@ -23,6 +23,7 @@ class App extends React.Component {
       <ProgramEditor
         actions={this.props.actions}
         program={this.props.program}
+        componentLibrary={this.props.componentLibrary}
       />
     )
   }
@@ -30,6 +31,9 @@ class App extends React.Component {
   componentDidMount () {
     if (! this.props.programEngine) {
       this._setupProgramEngine()
+    }
+    if (! _.get(this.props.componentLibrary, 'components')) {
+      this.props.actions.loadComponentLibrary()
     }
   }
 
@@ -89,6 +93,7 @@ function mapStateToProps(state) {
   return {
     programEngine: state.programEngine,
     program: _selectMergedProgram(state),
+    componentLibrary: state.componentLibrary,
   }
 }
 

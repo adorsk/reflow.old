@@ -31,7 +31,12 @@ class ProgramEditor extends React.Component {
   }
 
   _renderComponentLibrary () {
-    return (<ComponentLibrary actions={this.props.actions}/>)
+    return (
+      <ComponentLibrary
+        actions={this.props.actions}
+        componentLibrary={this.props.componentLibrary}
+      />
+    )
   }
 }
 
