@@ -28,5 +28,12 @@ actionCreators.updateProcOutputs = ({procId, updates}) => {
     programEngine.updateProcOutputs({procId, updates})
   }
 }
+actionCreators.addProcWithComponent = ({component}) => {
+  return (dispatch, getState) => {
+    const programEngine = getState().programEngine
+    const proc = {component}
+    programEngine.addProc(proc)
+  }
+}
 
 export default { actionTypes, actionCreators }

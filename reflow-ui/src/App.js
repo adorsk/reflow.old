@@ -33,8 +33,8 @@ class App extends React.Component {
     }
   }
 
-  _setupProgramEngine () {
-    const programEngine = createProgramEngine()
+  async _setupProgramEngine () {
+    const programEngine = await createProgramEngine()
     this.props.actions.setProgramEngine({programEngine})
     const initialEngineState = programEngine.store.getDerivedState()
     this._setInitialProcPositions({

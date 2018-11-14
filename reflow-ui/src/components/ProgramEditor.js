@@ -1,8 +1,8 @@
 import React from 'react'
 import { Container, Grid } from 'semantic-ui-react'
 
-
 import Program from './Program.js'
+import ComponentLibrary from './ComponentLibrary.js'
 
 class ProgramEditor extends React.Component {
   render () {
@@ -15,7 +15,7 @@ class ProgramEditor extends React.Component {
                 {this._renderProgram()}
               </Grid.Column>
               <Grid.Column width={4}>
-                right
+                {this._renderComponentLibrary()}
               </Grid.Column>
             </Grid.Row>
           </Grid>
@@ -28,6 +28,10 @@ class ProgramEditor extends React.Component {
     const program = this.props.program
     if (! program) { return null }
     return (<Program actions={this.props.actions} program={program} />)
+  }
+
+  _renderComponentLibrary () {
+    return (<ComponentLibrary actions={this.props.actions}/>)
   }
 }
 

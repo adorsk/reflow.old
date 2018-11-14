@@ -89,7 +89,11 @@ class Program extends React.Component {
             restrict: false,
             autoScroll: true,
             onmove: (dragEvent) => {
-              const currentPos = _.get(this.props.program.procs, [proc.id, 'uiState', 'position'])
+              const currentPos = _.get(
+                this.props.program.procs,
+                [proc.id, 'uiState', 'position'],
+                {x: 0, y: 0}
+              )
               this.props.actions.updateProcUiState({
                 procId: proc.id,
                 updates: {
@@ -161,8 +165,9 @@ class Program extends React.Component {
     _.each(this.props.program.wires, (wire) => {
       const { src, dest } = wire
       const srcProcRef = this.procRefs[src.procId]
-      const srcPortPos = srcProcRef.getPortPosition({portId: src.portId})
       const destProcRef = this.procRefs[dest.procId]
+      if (!srcProcRef || !destProcRef) { return }
+      const srcPortPos = srcProcRef.getPortPosition({portId: src.portId})
       const destPortPos = destProcRef.getPortPosition({portId: dest.portId})
       const wireRef = this.wireRefs[wire.id]
       wireRef.setPositions({
