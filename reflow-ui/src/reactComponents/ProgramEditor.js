@@ -21,25 +21,8 @@ class ProgramEditor extends React.Component {
           >
             <Grid.Row>
               <Grid.Column width={12}>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%',
-                  }}
-                >
-                  <div style={{flex: '0 1 auto'}}>
-                    {this._renderAddWireForm()}
-                  </div>
-                  <div
-                    style={{
-                      flex: '1 1 auto',
-                      position: 'relative',
-                      border: 'thin solid gray',
-                    }}
-                  >
-                    {this._renderProgram()}
-                  </div>
+                <div style={{height: '100%', width: '100%', position: 'relative'}}>
+                  {this._renderProgram()}
                 </div>
               </Grid.Column>
               <Grid.Column width={4}>
