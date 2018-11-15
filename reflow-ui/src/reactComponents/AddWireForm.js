@@ -16,7 +16,7 @@ class AddWireForm extends React.Component {
     const { selectedSrcOption, selectedDestOption } = this.state
     const options = this._getOptionsForPorts()
     return (
-      <div>
+      <div className="add-wire-form">
         <span>
           <label>src</label>
           <Select

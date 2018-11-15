@@ -11,16 +11,26 @@ class Program extends React.Component {
     super(props)
     this.procRefs = {}
     this.wireRefs = {}
+    this.scrollContainerRef = React.createRef()
+    this.procsContainerRef = React.createRef()
     this.wiresContainerRef = React.createRef()
     this._wiresFromProc = {}
     this._wiresToProc = {}
+    this._scrollState = {
+      currentDraggable: null,
+      before: {x: 0, y: 0},
+      after: {x: 0, y: 0}
+    }
   }
 
   render () {
-    const { program } = this.props
+    const { program, style } = this.props
     if (! program) { return null } 
     return (
-      <div className='program'>
+      <div
+        ref={this.scrollContainerRef}
+        className='program' style={style || {}}
+      >
         <div
           className='program-content-container'
           style={{position: 'relative'}}
@@ -60,6 +70,7 @@ class Program extends React.Component {
   renderProcs ({procs}) {
     return (
       <div
+        ref={this.procsContainerRef}
         className='procs-container'
         style={{position: 'absolute'}}
       >
@@ -84,29 +95,7 @@ class Program extends React.Component {
           left: _.get(uiState, ['position', 'x'], 0),
           top: _.get(uiState, ['position', 'y'], 0),
         }}
-        afterMount={(el) => {
-          this.procRefs[proc.id] = el
-          interact(el.labelRef.current).draggable({
-            restrict: false,
-            autoScroll: true,
-            onmove: (dragEvent) => {
-              const currentPos = _.get(
-                this.props.program.procs,
-                [proc.id, 'uiState', 'position'],
-                {x: 0, y: 0}
-              )
-              this.props.actions.updateProcUiState({
-                procId: proc.id,
-                updates: {
-                  position: {
-                    x: currentPos.x + dragEvent.dx,
-                    y: currentPos.y + dragEvent.dy
-                  }
-                }
-              })
-            }
-          })
-        }}
+        afterMount={(el) => { this.procRefs[proc.id] = el }}
         beforeUnmount={() => { delete this.procRefs[proc.id] }}
       />
     )
@@ -146,11 +135,64 @@ class Program extends React.Component {
   }
 
   componentDidMount () {
+    this._updateProcs()
     this._updateWires()
+
+    //per: https://github.com/taye/interact.js/issues/568
+    interact(this.scrollContainerRef.current).on('scroll', () => {
+      const scrollState = this._scrollState
+      if (!(scrollState.currentDraggable)) { return }
+      const currentScroll = {
+        x: this.scrollContainerRef.current.scrollLeft,
+        y: this.scrollContainerRef.current.scrollTop
+      }
+      scrollState.before = scrollState.after || currentScroll
+      scrollState.after = currentScroll
+      this._incrementProcPos({
+        procId: scrollState.currentDraggable,
+        x: (scrollState.after.x - scrollState.before.x),
+        y: (scrollState.after.y - scrollState.before.y),
+      })
+    })
   }
 
   componentDidUpdate (prevProps) {
     this._updateWires()
+  }
+
+  _updateProcs () {
+    _.each(this.procRefs, (procRef, procId) => {
+      interact(procRef.labelRef.current).draggable({
+        restrict: false,
+        autoScroll: { container: this.scrollContainerRef.current },
+        onstart: () => { this._scrollState.currentDraggable = procId },
+        onend: () => { this._scrollState = {} },
+        onmove: (dragEvent) => {
+          this._incrementProcPos({
+            procId,
+            x: dragEvent.dx,
+            y: dragEvent.dy
+          })
+        }
+      })
+    })
+  }
+
+  _incrementProcPos ({procId, x, y}) {
+    const currentPos = _.get(
+      this.props.program.procs,
+      [procId, 'uiState', 'position'],
+      {x: 0, y: 0}
+    )
+    this.props.actions.updateProcUiState({
+      procId,
+      updates: {
+        position: {
+          x: currentPos.x + x,
+          y: currentPos.y + y,
+        }
+      }
+    })
   }
 
   _updateWires () {

@@ -10,17 +10,37 @@ class ProgramEditor extends React.Component {
     return (
       <div>
         <Container>
-          <Grid>
-
-            <Grid.Row>
-              <Grid.Column width={16}>
-                {this._renderAddWireForm()}
-              </Grid.Column>
-            </Grid.Row>
-
+          <Grid
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+            }}
+          >
             <Grid.Row>
               <Grid.Column width={12}>
-                {this._renderProgram()}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                  }}
+                >
+                  <div style={{flex: '0 1 auto'}}>
+                    {this._renderAddWireForm()}
+                  </div>
+                  <div
+                    style={{
+                      flex: '1 1 auto',
+                      position: 'relative',
+                      border: 'thin solid gray',
+                    }}
+                  >
+                    {this._renderProgram()}
+                  </div>
+                </div>
               </Grid.Column>
               <Grid.Column width={4}>
                 {this._renderComponentLibrary()}
@@ -44,6 +64,14 @@ class ProgramEditor extends React.Component {
       <Program
         actions={this.props.actions}
         program={program}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          overflow: 'scroll',
+        }}
       />
     )
   }
