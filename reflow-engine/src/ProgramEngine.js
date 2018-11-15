@@ -91,7 +91,8 @@ class ProgramEngine {
 
   async run () {
     console.log('run')
-    const keepAliveTimer = setInterval(() => null, 100)
+    // Keep-alive for nodejs environment.
+    if (! window) { const keepAliveTimer = setInterval(() => null, 100) }
     this.updateDerivedState()
     await this._ensureProcTickFns({procs: this.derivedState.program.procs})
     const runPromise = new Promise((resolve, reject) => {

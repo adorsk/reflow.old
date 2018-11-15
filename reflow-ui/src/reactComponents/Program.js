@@ -96,7 +96,10 @@ class Program extends React.Component {
           top: _.get(uiState, ['position', 'y'], 0),
         }}
         afterMount={(el) => { this.procRefs[proc.id] = el }}
-        beforeUnmount={() => { delete this.procRefs[proc.id] }}
+        beforeUnmount={() => {
+          interact(this.procRefs[proc.id].labelRef.current).unset()
+          delete this.procRefs[proc.id]
+        }}
       />
     )
   }
@@ -158,10 +161,12 @@ class Program extends React.Component {
 
   componentDidUpdate (prevProps) {
     this._updateWires()
+    this._updateProcs()
   }
 
   _updateProcs () {
     _.each(this.procRefs, (procRef, procId) => {
+      if (procRef._dragified) { return }
       interact(procRef.labelRef.current).draggable({
         restrict: false,
         autoScroll: { container: this.scrollContainerRef.current },
@@ -175,6 +180,7 @@ class Program extends React.Component {
           })
         }
       })
+      procRef._dragified = true
     })
   }
 
