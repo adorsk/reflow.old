@@ -9,6 +9,7 @@ class Proc extends React.Component {
     super(props)
     this.portRefs = {}
     this.labelRef = React.createRef()
+    this.containerRef = React.createRef()
     this.widgetContainerRef = React.createRef()
   }
 
@@ -17,6 +18,7 @@ class Proc extends React.Component {
     return (
       <div
         className='proc-container'
+        ref={this.containerRef}
         style={style}
       >
         <div
