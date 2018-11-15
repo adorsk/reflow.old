@@ -11,52 +11,13 @@ class Program extends React.Component {
     super(props)
     this.procRefs = {}
     this.wireRefs = {}
-    this.scrollContainerRef = React.createRef()
+    this.progContainerRef = React.createRef()
     this.dragatarRef = React.createRef()
-    this.procsContainerRef = React.createRef()
     this.wiresContainerRef = React.createRef()
     this._wiresFromProc = {}
     this._wiresToProc = {}
-    this._scrollState = {
-      dragatar: {
-        getDOMNode: (() => this.dragatarRef.current),
-        updateStyle: (style) => {
-          const domNode = this._scrollState.dragatar.getDOMNode()
-          _.each(style, (val, key) => {
-            domNode.style[key] = val
-          })
-        },
-        incrementPos: ({x, y}) => {
-          const currentPos = this._scrollState.dragatar.pos
-          const nextPos = {x: currentPos.x + x, y: currentPos.y + y}
-          this._scrollState.dragatar.setPos(nextPos)
-        },
-        setPos: (pos) => {
-          this._scrollState.dragatar.pos = pos
-          this._scrollState.dragatar.updateStyle({
-            left: pos.x + 'px',
-            top: pos.y + 'px',
-          })
-        }
-      },
-      reset: () => {
-        this._scrollState = {
-          ...this._scrollState,
-          dragatar: {
-            ...this._scrollState.dragatar,
-            startPos: null,
-            procId: null,
-            pos: null,
-          },
-          before: null,
-          after: null,
-        }
-        if (this._scrollState.dragatar.getDOMNode()) {
-          this._scrollState.dragatar.updateStyle({visibility: 'hidden'})
-        }
-      }
-    }
-    this._scrollState.reset()
+    this._procDragState = null
+    this._wireDrawState = null
   }
 
   render () {
@@ -64,7 +25,7 @@ class Program extends React.Component {
     if (! program) { return null } 
     return (
       <div
-        ref={this.scrollContainerRef}
+        ref={this.progContainerRef}
         className='program' style={style || {}}
       >
         <div
@@ -106,7 +67,6 @@ class Program extends React.Component {
   renderProcs ({procs}) {
     return (
       <div
-        ref={this.procsContainerRef}
         className='procs-container'
         style={{position: 'absolute'}}
       >
@@ -184,24 +144,73 @@ class Program extends React.Component {
   }
 
   componentDidMount () {
+    this._setupProcDragState()
+    this._setupWireDrawState()
     this._updateProcs()
     this._updateWires()
+  }
+
+  _setupProcDragState() {
+    this._procDragState = {
+      dragatar: {
+        getDOMNode: (() => this.dragatarRef.current),
+        updateStyle: (style) => {
+          const domNode = this._procDragState.dragatar.getDOMNode()
+          _.each(style, (val, key) => {
+            domNode.style[key] = val
+          })
+        },
+        incrementPos: ({x, y}) => {
+          const currentPos = this._procDragState.dragatar.pos
+          const nextPos = {x: currentPos.x + x, y: currentPos.y + y}
+          this._procDragState.dragatar.setPos(nextPos)
+        },
+        setPos: (pos) => {
+          this._procDragState.dragatar.pos = pos
+          this._procDragState.dragatar.updateStyle({
+            left: pos.x + 'px',
+            top: pos.y + 'px',
+          })
+        }
+      },
+      reset: () => {
+        this._procDragState = {
+          ...this._procDragState,
+          dragatar: {
+            ...this._procDragState.dragatar,
+            startPos: null,
+            procId: null,
+            pos: null,
+          },
+          before: null,
+          after: null,
+        }
+        if (this._procDragState.dragatar.getDOMNode()) {
+          this._procDragState.dragatar.updateStyle({visibility: 'hidden'})
+        }
+      }
+    }
+    this._procDragState.reset()
 
     //extra scroll handling per: https://github.com/taye/interact.js/issues/568
-    interact(this.scrollContainerRef.current).on('scroll', () => {
-      const scrollState = this._scrollState
-      if (!(scrollState.dragatar.procId)) { return }
+    interact(this.progContainerRef.current).on('scroll', () => {
+      const procDragState = this._procDragState
+      if (!(procDragState.dragatar.procId)) { return }
       const currentScroll = {
-        x: this.scrollContainerRef.current.scrollLeft,
-        y: this.scrollContainerRef.current.scrollTop
+        x: this.progContainerRef.current.scrollLeft,
+        y: this.progContainerRef.current.scrollTop
       }
-      scrollState.before = scrollState.after || currentScroll
-      scrollState.after = currentScroll
-      this._scrollState.dragatar.incrementPos({
-        x: (scrollState.after.x - scrollState.before.x),
-        y: (scrollState.after.y - scrollState.before.y),
+      procDragState.before = procDragState.after || currentScroll
+      procDragState.after = currentScroll
+      this._procDragState.dragatar.incrementPos({
+        x: (procDragState.after.x - procDragState.before.x),
+        y: (procDragState.after.y - procDragState.before.y),
       })
     })
+  }
+
+  _setupWireDrawState() {
+    this._wireDrawState = {}
   }
 
   componentDidUpdate (prevProps) {
@@ -214,12 +223,12 @@ class Program extends React.Component {
       if (procRef._dragified) { return }
       interact(procRef.labelRef.current).draggable({
         restrict: false,
-        autoScroll: { container: this.scrollContainerRef.current },
+        autoScroll: { container: this.progContainerRef.current },
         onstart: () => {
-          this._scrollState.dragatar.procId = procId
+          this._procDragState.dragatar.procId = procId
           const procContainerNode = procRef.containerRef.current
           const procRect = procContainerNode.getBoundingClientRect()
-          this._scrollState.dragatar.updateStyle({
+          this._procDragState.dragatar.updateStyle({
             visibility: 'visible',
             width: procRect.width + 'px',
             height: procRect.height + 'px',
@@ -228,15 +237,15 @@ class Program extends React.Component {
             x: parseFloat(procContainerNode.style.left),
             y: parseFloat(procContainerNode.style.top),
           }
-          this._scrollState.dragatar.setPos(startPos)
-          this._scrollState.dragatar.startPos = startPos
+          this._procDragState.dragatar.setPos(startPos)
+          this._procDragState.dragatar.startPos = startPos
         },
         onend: () => {
           const currentPos = (
             this.props.program.procs[procId].uiState.position
             || {x: 0, y: 0}
           )
-          const dragatar = this._scrollState.dragatar
+          const dragatar = this._procDragState.dragatar
           const nextPos = _.mapValues(currentPos, (curValue, xy) => {
             const delta = dragatar.pos[xy] - dragatar.startPos[xy]
             return curValue + delta
@@ -245,10 +254,10 @@ class Program extends React.Component {
             procId,
             updates: { position: nextPos }
           })
-          this._scrollState.reset()
+          this._procDragState.reset()
         },
         onmove: (event) => {
-          this._scrollState.dragatar.incrementPos({x: event.dx, y: event.dy})
+          this._procDragState.dragatar.incrementPos({x: event.dx, y: event.dy})
         }
       })
       procRef._dragified = true
