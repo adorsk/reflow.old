@@ -8,6 +8,7 @@ class Wire extends React.Component {
     this.state = {
       srcPosition: null,
       destPosition: null,
+      visibility: 'visible',
     }
   }
 
@@ -20,6 +21,7 @@ class Wire extends React.Component {
           fill: 'none',
           strokeWidth: 3,
           stroke: 'hsla(0, 0%, 50%, .9)',
+          visibility: this.state.visibility,
           ...(this.props.style || {}),
         }}
       />
@@ -50,6 +52,10 @@ class Wire extends React.Component {
 
   setPositions ({src, dest}) {
     this.setState({srcPosition: src, destPosition: dest})
+  }
+
+  setVisibility (visibility) {
+    this.setState({visibility})
   }
 }
 

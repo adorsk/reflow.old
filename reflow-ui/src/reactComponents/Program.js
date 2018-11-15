@@ -251,6 +251,7 @@ class Program extends React.Component {
       startDrawing: (evt) => {
         mgr.containerPagePos = getPagePos(mgr.containerEl)
         if (mgr.isPortHandleEl(evt.target)) {
+          mgr.avatar.ref.setVisibility('visible')
           mgr.isDrawing = true
           const {portId, procId} = mgr.getPortInfoFromEl(evt.target)
           mgr.wireSrc = {portId, procId}
@@ -280,7 +281,12 @@ class Program extends React.Component {
             }
           })
         }
+        mgr.reset()
+      },
+      reset: () => {
         mgr.containerEl.removeEventListener('mousemove', mgr.onDrawMove)
+        mgr.avatar.ref.setVisibility('hidden')
+        mgr.avatar.ref.setPositions({src: null, dest: null})
         mgr.isDrawing = false
       },
     }
