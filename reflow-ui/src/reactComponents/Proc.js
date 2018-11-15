@@ -116,9 +116,9 @@ class Proc extends React.Component {
     if (this.props.beforeUnmount) { this.props.beforeUnmount(this) }
   }
 
-  getPortPosition ({ioType, portId}) {
+  getPortBoundingRect ({ioType, portId}) {
     if (! this.portRefs[portId]) { return null }
-    return this.portRefs[portId].getPosition()
+    return this.portRefs[portId].getBoundingRect()
   }
 }
 

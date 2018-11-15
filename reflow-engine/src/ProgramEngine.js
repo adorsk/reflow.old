@@ -35,6 +35,7 @@ class ProgramEngine {
       id: constants.rootProcId,
       component: NoopComponent.getInstance(),
       status: Statuses.RESOLVED,
+      hidden: true,
     })
   }
 

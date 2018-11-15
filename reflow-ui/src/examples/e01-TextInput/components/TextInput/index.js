@@ -1,6 +1,11 @@
 class TextInputComponent {
   constructor () {
     this._widgetFactoryPromise = null
+    this.ports = {
+      outputs: [
+        {id: 'OUT'}
+      ]
+    }
   }
 
   async createWidget (...args) {

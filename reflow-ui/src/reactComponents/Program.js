@@ -11,6 +11,7 @@ class Program extends React.Component {
     super(props)
     this.procRefs = {}
     this.wireRefs = {}
+    this.wiresContainerRef = React.createRef()
     this._wiresFromProc = {}
     this._wiresToProc = {}
   }
@@ -63,7 +64,7 @@ class Program extends React.Component {
         style={{position: 'absolute'}}
       >
         {
-          _.map(procs, (proc) => {
+          _.filter(procs, (proc) => !proc.hidden).map((proc) => {
             return this.renderProc({proc})
           })
         }
@@ -114,12 +115,15 @@ class Program extends React.Component {
   renderWires ({wires}) {
     return (
       <svg
+        ref={this.wiresContainerRef}
         className='wires-container'
         style={{
           position: 'absolute',
           overflow: 'visible',
-          width: 2,
-          height: 2,
+          left: 0,
+          right: 0,
+          top: 0,
+          zIndex: -1,
         }}
       >
         {
@@ -167,13 +171,17 @@ class Program extends React.Component {
       const srcProcRef = this.procRefs[src.procId]
       const destProcRef = this.procRefs[dest.procId]
       if (!srcProcRef || !destProcRef) { return }
-      const srcPortPos = srcProcRef.getPortPosition({portId: src.portId})
-      const destPortPos = destProcRef.getPortPosition({portId: dest.portId})
-      const wireRef = this.wireRefs[wire.id]
-      wireRef.setPositions({
-        src: srcPortPos,
-        dest: destPortPos,
+      const containerRect = this.wiresContainerRef.current.getBoundingClientRect()
+      const _getOffsetPos = (rect) => ({
+        x: rect.x - containerRect.x,
+        y: rect.y - containerRect.y + (rect.height / 2)
       })
+      const srcRect = srcProcRef.getPortBoundingRect({portId: src.portId})
+      const srcPos = _getOffsetPos(srcRect)
+      const destRect = destProcRef.getPortBoundingRect({portId: dest.portId})
+      const destPos = _getOffsetPos(destRect)
+      const wireRef = this.wireRefs[wire.id]
+      wireRef.setPositions({src: srcPos, dest: destPos})
     })
   }
 }

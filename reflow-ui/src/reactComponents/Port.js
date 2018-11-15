@@ -12,11 +12,11 @@ class Port extends React.Component {
     const icon = (ioType === 'inputs') ? '▶' : '◀'
     return (
       <div>
-        <span ref={this.portRef}>
-          {icon}
-        </span>
+        <span ref={this.portRef}>{icon}</span>
         <label>
-          {portDef.label || portDef.id} [value: {JSON.stringify(value)}]
+          <span title={JSON.stringify(value)}>
+            {portDef.label || portDef.id}
+          </span>
         </label>
       </div>
     )
@@ -30,12 +30,8 @@ class Port extends React.Component {
     if (this.props.beforeUnmount) { this.props.beforeUnmount(this) }
   }
 
-  getPosition () {
-    const boundingRect = this.portRef.current.getBoundingClientRect()
-    return {
-      x: boundingRect.left + window.pageXOffset,
-      y: boundingRect.top + window.pageYOffset,
-    }
+  getBoundingRect () {
+    return this.portRef.current.getBoundingClientRect()
   }
 }
 

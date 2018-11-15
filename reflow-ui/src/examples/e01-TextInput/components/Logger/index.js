@@ -1,6 +1,11 @@
 class LoggerComponent {
   constructor () {
     this._widgetFactoryPromise = null
+    this.ports = {
+      inputs: [
+        {id: 'IN'}
+      ]
+    }
   }
 
   async createWidget (...args) {

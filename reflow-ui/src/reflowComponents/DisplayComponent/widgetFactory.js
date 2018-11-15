@@ -6,6 +6,7 @@ class DisplayWidget {
   update ({proc}) {
     if (!(proc) || !(proc.inputs) || !(proc.inputs.displayFn)) { return }
     try {
+      // eslint-disable-next-line
       const displayFn = new Function('container', 'IN', proc.inputs.displayFn.data)
       displayFn(this.container, proc.inputs.IN)
     } catch (err) {
