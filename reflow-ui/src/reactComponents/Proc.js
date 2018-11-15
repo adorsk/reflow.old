@@ -1,5 +1,7 @@
 import React from 'react'
 import _ from 'lodash'
+import { getPagePos } from '../utils.js'
+
 
 import Port from './Port.js'
 import Widget from './Widget.js'
@@ -83,6 +85,7 @@ class Proc extends React.Component {
       <Port
         key={portDef.id}
         portDef={portDef}
+        procId={this.props.proc.id}
         ioType={ioType}
         value={value}
         afterMount={(el) => {
@@ -118,9 +121,13 @@ class Proc extends React.Component {
     if (this.props.beforeUnmount) { this.props.beforeUnmount(this) }
   }
 
-  getPortBoundingRect ({ioType, portId}) {
+  getPortHandlePagePos ({portId}) {
     if (! this.portRefs[portId]) { return null }
-    return this.portRefs[portId].getBoundingRect()
+    const handleEl = this.portRefs[portId].getHandleEl()
+    const handleRect = handleEl.getBoundingClientRect()
+    const pagePos = getPagePos(handleEl)
+    pagePos.y += (handleRect.height / 2)
+    return pagePos
   }
 }
 

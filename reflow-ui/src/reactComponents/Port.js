@@ -4,15 +4,21 @@ import React from 'react'
 class Port extends React.Component {
   constructor (props) {
     super(props)
-    this.portRef = React.createRef()
+    this.handleRef = React.createRef()
   }
 
   render () {
-    const { portDef, ioType, value } = this.props
-    const icon = (ioType === 'inputs') ? '▶' : '◀'
+    const { portDef, procId, ioType, value } = this.props
     return (
       <div>
-        <span ref={this.portRef}>{icon}</span>
+        <span
+          ref={this.handleRef}
+          data-portid={portDef.id}
+          data-procid={procId}
+          className='port-handle'
+        >
+          {(ioType === 'inputs') ? '▶' : '◀'}
+        </span>
         <label>
           <span title={JSON.stringify(value)}>
             {portDef.label || portDef.id}
@@ -30,9 +36,7 @@ class Port extends React.Component {
     if (this.props.beforeUnmount) { this.props.beforeUnmount(this) }
   }
 
-  getBoundingRect () {
-    return this.portRef.current.getBoundingClientRect()
-  }
+  getHandleEl () { return this.handleRef.current }
 }
 
 export default Port

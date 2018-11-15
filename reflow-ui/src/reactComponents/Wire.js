@@ -16,8 +16,12 @@ class Wire extends React.Component {
       <path
         d={this.positionsToD()}
         fill='none'
-        strokeWidth={1}
-        stroke={'blue'}
+        style={{
+          fill: 'none',
+          strokeWidth: 3,
+          stroke: 'hsla(0, 0%, 50%, .9)',
+          ...(this.props.style || {}),
+        }}
       />
     )
   }
