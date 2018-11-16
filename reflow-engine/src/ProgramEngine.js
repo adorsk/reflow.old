@@ -152,8 +152,11 @@ class ProgramEngine {
     this._updateProcStatus({procId: proc.id, status: Statuses.RUNNING})
     tickFn({
       state: _.get(proc, ['state'], {}),
-      inputs,
-      prevInputs,
+      inputs: {
+        current: inputs,
+        prev: prevInputs,
+        fresh: this._computeFreshInputs({currentInputs: inputs, prevInputs}),
+      },
       updateOutputs: (updates) => {
         this.updateProcOutputs({procId: proc.id, updates})
       },
@@ -171,6 +174,17 @@ class ProgramEngine {
       id: procId,
       updates: {status}
     })
+  }
+
+  _computeFreshInputs ({currentInputs, prevInputs}) {
+    const freshInputs = {}
+    for (let key of _.keys(currentInputs)) {
+      if (
+        (!(key in prevInputs))
+        || (_.get(currentInputs[key], 'idx') !== _.get(prevInputs[key], 'idx'))
+      ) { freshInputs[key] = currentInputs[key] }
+    }
+    return freshInputs
   }
 
   _updateProcState ({procId, updates}) {

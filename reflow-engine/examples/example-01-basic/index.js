@@ -8,11 +8,11 @@ export async function createProgramEngine () {
     key: 'generate',
     value: {
       getTickFn () {
-        return function tickFn({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
-          if (inputs.COUNT && (inputs.COUNT !== prevInputs.COUNT)) {
+        return function tickFn({state, inputs, updateOutputs, resolve, updateState}) {
+          if (inputs.fresh.COUNT) {
             updateState({
               emitting: true,
-              numToEmit: inputs.COUNT.data,
+              numToEmit: inputs.fresh.COUNT.data,
               counter: 0
             })
           }
@@ -36,8 +36,8 @@ export async function createProgramEngine () {
     value: {
       getTickFn () {
         return function tickFn({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
-          if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
-            updateOutputs({'OUT': {data: inputs.IN.data}})
+          if (inputs.fresh.IN) {
+            updateOutputs({'OUT': inputs.fresh.IN})
             resolve()
           }
         }
@@ -51,8 +51,8 @@ export async function createProgramEngine () {
     value: {
       getTickFn () {
         return function tickFn ({inputs, prevInputs, resolve}) {
-          if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
-            const packet = inputs.IN
+          if (inputs.fresh.IN) {
+            const packet = inputs.fresh.IN
             if (packet.type === 'OPEN') {
               console.log('open')
             }
