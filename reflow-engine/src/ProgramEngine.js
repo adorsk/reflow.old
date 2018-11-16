@@ -151,21 +151,29 @@ class ProgramEngine {
     if (inputsUnchanged && isResolved) { return }
     this._updateProcStatus({procId: proc.id, status: Statuses.RUNNING})
     tickFn({
-      state: _.get(proc, ['state'], {}),
       inputs: {
         current: inputs,
         prev: prevInputs,
         fresh: this._computeFreshInputs({currentInputs: inputs, prevInputs}),
       },
-      updateOutputs: (updates) => {
-        this.updateProcOutputs({procId: proc.id, updates})
+      state: _.get(proc, ['state'], {}),
+      actions: {
+        updateOutputs: (packetsByPort) => {
+          this.updateProcOutputs({
+            procId: proc.id,
+            updates: _.mapValues(packetsByPort, (packet) => {
+              return this._sanitizePacket(packet)
+            })
+          })
+        },
+        resolve: () => {
+          this._updateProcStatus({procId: proc.id, status: Statuses.RESOLVED})
+        },
+        updateState: (updates) => {
+          this._updateProcState({procId: proc.id, updates})
+        }
       },
-      resolve: () => {
-        this._updateProcStatus({procId: proc.id, status: Statuses.RESOLVED})
-      },
-      updateState: (updates) => {
-        this._updateProcState({procId: proc.id, updates})
-      }
+      constants: {PacketTypes: constants.PacketTypes}
     })
   }
 
@@ -185,6 +193,16 @@ class ProgramEngine {
       ) { freshInputs[key] = currentInputs[key] }
     }
     return freshInputs
+  }
+
+  _sanitizePacket (packet) {
+    if (packet && !packet.packetType) {
+      packet = {
+        packetType: constants.PacketTypes.DATA,
+        data: packet
+      }
+    }
+    return packet
   }
 
   _updateProcState ({procId, updates}) {

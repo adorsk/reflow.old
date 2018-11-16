@@ -8,9 +8,9 @@ export async function createProgramEngine () {
     key: 'generate',
     value: {
       getTickFn () {
-        return function tickFn({state, inputs, updateOutputs, resolve, updateState}) {
+        return function tickFn({state, inputs, actions}) {
           if (inputs.fresh.COUNT) {
-            updateState({
+            actions.updateState({
               emitting: true,
               numToEmit: inputs.fresh.COUNT.data,
               counter: 0
@@ -18,11 +18,11 @@ export async function createProgramEngine () {
           }
           if (state.emitting) {
             if (state.counter >= state.numToEmit) {
-              updateState({emitting: false})
-              resolve()
+              actions.updateState({emitting: false})
+              actions.resolve()
             } else {
-              updateOutputs({OUT: {data: state.counter}})
-              updateState({counter: state.counter + 1})
+              actions.updateOutputs({OUT: state.counter})
+              actions.updateState({counter: state.counter + 1})
             }
           }
         }
@@ -35,10 +35,10 @@ export async function createProgramEngine () {
     key: 'copy',
     value: {
       getTickFn () {
-        return function tickFn({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
+        return function tickFn({state, inputs, actions}) {
           if (inputs.fresh.IN) {
-            updateOutputs({'OUT': inputs.fresh.IN})
-            resolve()
+            actions.updateOutputs({'OUT': inputs.fresh.IN})
+            actions.resolve()
           }
         }
       }
@@ -50,18 +50,22 @@ export async function createProgramEngine () {
     key: 'receive',
     value: {
       getTickFn () {
-        return function tickFn ({inputs, prevInputs, resolve}) {
+        return function tickFn ({state, inputs, actions, constants}) {
           if (inputs.fresh.IN) {
             const packet = inputs.fresh.IN
-            if (packet.type === 'OPEN') {
-              console.log('open')
-            }
-            else if (packet.type == 'CLOSE') {
-              console.log('close')
-            }
-            else {
-              console.log('data ', packet.data)
-              resolve()
+            switch (packet.packetType) {
+              case constants.PacketTypes.OPEN:
+                console.log('open')
+                break
+              case constants.PacketTypes.CLOSE:
+                console.log('close')
+                break
+              case constants.PacketTypes.DATA:
+                console.log('data ', packet.data)
+                actions.resolve()
+                break
+              default:
+                break
             }
           }
         }
