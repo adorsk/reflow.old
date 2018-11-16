@@ -365,18 +365,17 @@ class Program extends React.Component {
       const srcProcRef = this.procRefs[src.procId]
       const destProcRef = this.procRefs[dest.procId]
       if (!srcProcRef || !destProcRef) { return }
+      const srcPos = srcProcRef.getPortHandlePagePos({portId: src.portId })
+      const destPos = destProcRef.getPortHandlePagePos({portId: dest.portId})
+      if (!srcPos || !destPos) { return }
       const containerPagePos = getPagePos(this.wiresContainerRef.current)
       const _getRelPos = (pagePos) => ({
         x: pagePos.x - containerPagePos.x,
         y: pagePos.y - containerPagePos.y,
       })
       this.wireRefs[wire.id].setPositions({
-        src: _getRelPos(
-          srcProcRef.getPortHandlePagePos({portId: src.portId })
-        ),
-        dest: _getRelPos(
-          destProcRef.getPortHandlePagePos({portId: dest.portId})
-        ),
+        src: _getRelPos(srcPos),
+        dest: _getRelPos(destPos)
       })
     })
   }

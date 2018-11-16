@@ -3,7 +3,7 @@ import _ from 'lodash'
 import * as constants from './constants.js'
 import NoopComponent from './components/Noop.js'
 import Store from './store/Store.js'
-import Resolver from './Resolver.js'
+import ComponentLibrary from './ComponentLibrary.js'
 import SerDes from './SerDes.js'
 
 
@@ -15,7 +15,7 @@ const Statuses = {
 class ProgramEngine {
   constructor (opts = {}) {
     this.store = opts.store || this._createStore()
-    this.resolver = opts.resolver || this._createResolver()
+    this.componentLibrary = opts.componentLibrary || this._createComponentLibrary()
     this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
     this.tickCount = 0
@@ -23,13 +23,8 @@ class ProgramEngine {
     this.prevInputsByProcId = null
   }
 
-  _createStore () {
-    return new Store()
-  }
-
-  _createResolver () {
-    return new Resolver()
-  }
+  _createStore () { return new Store() }
+  _createComponentLibrary () { return new ComponentLibrary() }
 
   _addRootProc () {
     this.addProc({
@@ -41,8 +36,12 @@ class ProgramEngine {
   }
 
   async addProc (proc) {
-    await this._ensureProcTickFns({procs: [proc]})
-    this.store.actions.proc.create(proc)
+    const procWithComponent= {
+      ...proc,
+      component: await this.componentLibrary.get({key: proc.componentId})
+    }
+    await this._ensureProcTickFns({procs: [procWithComponent]})
+    this.store.actions.proc.create(procWithComponent)
   }
 
   addWire (wire) {
@@ -88,7 +87,6 @@ class ProgramEngine {
   async run (opts = {}) {
     console.log('run')
     const { maxTicks } = opts
-    await this._ensureProcTickFns({procs: this.getProgram().procs})
     const runPromise = new Promise((resolve, reject) => {
       const onStoreChange = () => {
         const program = this.getProgram()
@@ -177,14 +175,6 @@ class ProgramEngine {
 
   _updateProcState ({procId, updates}) {
     return this.store.actions.proc.updateState({id: procId, updates: updates})
-  }
-
-  async resolveProcFromSpec({procSpec}) {
-    const proc = await this.resolver.resolve({spec: procSpec})
-    if (!proc.component && proc.componentSpec) {
-      proc.component = await this.resolver.resolve({spec: proc.componentSpec})
-    }
-    return proc
   }
 }
 

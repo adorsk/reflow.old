@@ -3,9 +3,10 @@ import ProgramEngine from '../../src/ProgramEngine.js'
 
 export async function createProgramEngine () {
   const progEngine = new ProgramEngine()
-  await progEngine.addProc({
-    id: 'generate',
-    component: {
+
+  progEngine.componentLibrary.set({
+    key: 'generate',
+    value: {
       getTickFn () {
         return function tickFn({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
           if (inputs.COUNT && (inputs.COUNT !== prevInputs.COUNT)) {
@@ -28,22 +29,26 @@ export async function createProgramEngine () {
       }
     }
   })
-  await progEngine.addProc({
-    id: 'copy',
-    component: {
+  await progEngine.addProc({id: 'generate', componentId: 'generate'})
+
+  progEngine.componentLibrary.set({
+    key: 'copy',
+    value: {
       getTickFn () {
-        return function tickFn ({inputs, prevInputs, updateOutputs, resolve}) {
+        return function tickFn({state, inputs, prevInputs, updateOutputs, resolve, updateState}) {
           if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
             updateOutputs({'OUT': {data: inputs.IN.data}})
             resolve()
           }
         }
       }
-    },
+    }
   })
-  progEngine.addProc({
-    id: 'receive',
-    component: {
+  await progEngine.addProc({id: 'copy', componentId: 'copy'})
+
+  progEngine.componentLibrary.set({
+    key: 'receive',
+    value: {
       getTickFn () {
         return function tickFn ({inputs, prevInputs, resolve}) {
           if (inputs.IN && (inputs.IN !== prevInputs.IN)) {
@@ -63,6 +68,8 @@ export async function createProgramEngine () {
       }
     }
   })
+  await progEngine.addProc({id: 'receive', componentId: 'receive'})
+
   progEngine.addWire({
     src: { procId: 'generate', portId: 'OUT' },
     dest: { procId: 'copy', portId: 'IN' },

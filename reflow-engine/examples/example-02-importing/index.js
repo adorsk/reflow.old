@@ -1,24 +1,14 @@
 import ProgramEngine from '../../src/ProgramEngine.js'
+import MyComponent from './myComponent.js'
 
 export async function createProgramEngine (opts = {}) {
   const programArgs = opts.programArgs || []
   const progEngine = new ProgramEngine(...programArgs)
-  const proc = await progEngine.resolveProcFromSpec({
-    procSpec: {
-      type: 'inline',
-      value: {
-        id: 'proc1',
-        componentSpec: {
-          type: 'fn',
-          fn: async () => {
-            const module = await import('./myComponent.js')
-            return module.default
-          }
-        }
-      }
-    }
+  progEngine.componentLibrary.set({
+    key: 'myComponent',
+    value: MyComponent
   })
-  await progEngine.addProc(proc)
+  await progEngine.addProc({id: 'myComponentProc', componentId: 'myComponent'})
   return progEngine
 }
 

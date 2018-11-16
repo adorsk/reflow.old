@@ -40,14 +40,14 @@ class App extends React.Component {
   async _setupProgramEngine () {
     const programEngine = await createProgramEngine()
     this.props.actions.setProgramEngine({programEngine})
-    const initialEngineState = programEngine.store.getDerivedState()
+    const initialEngineState = programEngine.store.getProgram()
     this._setInitialProcPositions({
-      procIds: _.keys(_.get(initialEngineState, ['program', 'procs'], {}))
+      procIds: _.keys(_.get(initialEngineState, ['procs'], {}))
     })
     this.props.actions.setEngineState({engineState: initialEngineState})
     programEngine.store.subscribe(_.debounce(() => {
       this.props.actions.setEngineState({
-        engineState: programEngine.store.getDerivedState()
+        engineState: programEngine.store.getProgram()
       })
     }), 0)
     programEngine.run()
@@ -75,11 +75,10 @@ class App extends React.Component {
 }
 
 function _selectMergedProgram ({engineState, procUiStates, procWidgetStates}) {
-  const engineStateProgram = engineState.program
-  if (! engineStateProgram) { return null }
+  if (! engineState) { return null }
   return {
-    ...engineStateProgram,
-    procs: _.mapValues(engineStateProgram.procs, (proc) => {
+    ...engineState,
+    procs: _.mapValues(engineState.procs, (proc) => {
       return {
         ...proc,
         uiState: _.get(procUiStates, [proc.id], {}),
