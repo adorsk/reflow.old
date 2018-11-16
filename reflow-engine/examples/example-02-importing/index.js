@@ -18,12 +18,16 @@ export async function createProgramEngine (opts = {}) {
       }
     }
   })
-  progEngine.addProc(proc)
+  await progEngine.addProc(proc)
   return progEngine
 }
 
-if (typeof require != 'undefined' && require.main == module) {
+if (typeof require !== 'undefined' && require.main === module) {
+  const keepAliveTimer = setInterval(() => null, 100)
   createProgramEngine()
-    .then(progEngine => progEngine.run())
-    .then(() => { console.log('done!') })
+    .then((progEngine) => progEngine.run({maxTicks: 10}))
+    .finally(() => {
+      clearInterval(keepAliveTimer)
+      console.log('done!')
+    })
 }

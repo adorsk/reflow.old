@@ -4,6 +4,7 @@ import * as constants from './constants.js'
 import NoopComponent from './components/Noop.js'
 import Store from './store/Store.js'
 import Resolver from './Resolver.js'
+import SerDes from './SerDes.js'
 
 
 const Statuses = {
@@ -13,13 +14,13 @@ const Statuses = {
 
 class ProgramEngine {
   constructor (opts = {}) {
-    this._prevProcs = {}
     this.store = opts.store || this._createStore()
     this.resolver = opts.resolver || this._createResolver()
     this.store.actions.program.create({id: 'mainProgram'})
     this._addRootProc()
-    this._tickCounter = 0
-    this._packetCounter = 0
+    this.tickCount = 0
+    this.packetCount = 0
+    this.prevInputsByProcId = null
   }
 
   _createStore () {
@@ -48,13 +49,8 @@ class ProgramEngine {
     this.store.actions.wire.create(wire)
   }
 
-  updateDerivedState () {
-    this.derivedState = this.store.getDerivedState()
-  }
-
-  getProcs () {
-    this.updateDerivedState()
-    return _.get(this.derivedState, ['program', 'procs'], {})
+  getProgram () {
+    return this.store.getProgram()
   }
 
   updateProc ({id, updates}) {
@@ -81,7 +77,7 @@ class ProgramEngine {
 
   updateProcOutputs ({procId, updates}) {
     const updatesWithIdxs = _.mapValues(updates, (packet) => {
-      return {packet: {...packet, idx: this._packetCounter++}}
+      return {packet: {...packet, idx: this.packetCount++}}
     })
     return this.store.actions.proc.updateOutputs({
       id: procId,
@@ -89,29 +85,27 @@ class ProgramEngine {
     })
   }
 
-  async run () {
+  async run (opts = {}) {
     console.log('run')
-    // Keep-alive for nodejs environment.
-    if (! window) { const keepAliveTimer = setInterval(() => null, 100) }
-    this.updateDerivedState()
-    await this._ensureProcTickFns({procs: this.derivedState.program.procs})
+    const { maxTicks } = opts
+    await this._ensureProcTickFns({procs: this.getProgram().procs})
     const runPromise = new Promise((resolve, reject) => {
-      this.store.subscribe(_.debounce(() => {
-        this.updateDerivedState()
-        if (this.derivedState.program.status === Statuses.RESOLVED) {
-          resolve()
-        } else {
-          this._tick({derivedState: this.derivedState})
+      const onStoreChange = () => {
+        const program = this.getProgram()
+        if (maxTicks && this.tickCount > maxTicks) {
+          throw new Error('exceeded max ticks')
         }
-      }, 0))
-      this.updateDerivedState()
-      this._tick({derivedState: this.derivedState})
+        if (program.status === Statuses.RESOLVED) { resolve() }
+        else { this._tick({program}) }
+      }
+      // The debounce is important: it allows us avoid infinite recursion
+      // by consolidating ticks. We only do the next tick when 
+      // state updates for the current tick have finished.
+      this.store.subscribe(_.debounce(onStoreChange), 0)
+      this._tick({program: this.getProgram()})
     })
-
-    return runPromise.then((...args) => {
-      clearInterval(keepAliveTimer)
-      return args
-    })
+    this._tick({program: this.getProgram()}) // initial tick
+    return runPromise
   }
 
   async _ensureProcTickFns({procs}) {
@@ -131,21 +125,18 @@ class ProgramEngine {
     return Promise.all(tickFnPromises)
   }
 
-  _tick({derivedState = {}}) {
-    console.debug('_tick', this._tickCounter++)
-    const { program } = derivedState
+  _tick({program = {}}) {
+    console.debug('_tick', this.tickCount++)
     if (! program) { return }
-    for (let proc of _.values(program.procs)) {
-      this._tickProc({proc})
-    }
-    this._prevProcs = program.procs
+    const prevInputsByProcId = this.store.getInputsByProcId()
+    for (let proc of _.values(program.procs)) { this._tickProc({proc}) }
     if (!this._hasUnresolvedProcs({program})) {
       this.store.actions.program.update({
         id: program.id,
         updates: { status: Statuses.RESOLVED }
       })
     }
-    this._prevProcs = program.procs
+    this.prevInputsByProcId = prevInputsByProcId
   }
 
   _hasUnresolvedProcs ({program}) {
@@ -156,14 +147,14 @@ class ProgramEngine {
     const tickFn = _.get(proc, ['component', 'tickFn'])
     if (! tickFn) { return }
     const inputs = _.get(proc, ['inputs'], {})
-    const prevInputs = _.get(this._prevProcs, [proc.id, 'inputs'], {})
+    const prevInputs = _.get(this.prevInputsByProcId, proc.id, {})
     const inputsUnchanged = (inputs.__version === prevInputs.__version)
     const isResolved = (proc.status === Statuses.RESOLVED)
     if (inputsUnchanged && isResolved) { return }
     this._updateProcStatus({procId: proc.id, status: Statuses.RUNNING})
     tickFn({
       state: _.get(proc, ['state'], {}),
-      inputs: _.get(proc, ['inputs'], {}),
+      inputs,
       prevInputs,
       updateOutputs: (updates) => {
         this.updateProcOutputs({procId: proc.id, updates})

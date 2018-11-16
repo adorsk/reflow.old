@@ -1,10 +1,9 @@
 import ProgramEngine from '../../src/ProgramEngine.js'
 
 
-export const createProgramEngine = (opts = {}) => {
-  const programArgs = opts.programArgs || []
-  const progEngine = new ProgramEngine(...programArgs)
-  progEngine.addProc({
+export async function createProgramEngine () {
+  const progEngine = new ProgramEngine()
+  await progEngine.addProc({
     id: 'generate',
     component: {
       getTickFn () {
@@ -29,7 +28,7 @@ export const createProgramEngine = (opts = {}) => {
       }
     }
   })
-  progEngine.addProc({
+  await progEngine.addProc({
     id: 'copy',
     component: {
       getTickFn () {
@@ -79,9 +78,12 @@ export const createProgramEngine = (opts = {}) => {
   return progEngine
 }
 
-if (typeof require != 'undefined' && require.main == module) {
-  const progEngine = createProgramEngine()
-  progEngine.run().then(() => {
-    console.log('done!')
-  })
+if (typeof require !== 'undefined' && require.main === module) {
+  const keepAliveTimer = setInterval(() => null, 100)
+  createProgramEngine()
+    .then((progEngine) => progEngine.run({maxTicks: 10}))
+    .finally(() => {
+      clearInterval(keepAliveTimer)
+      console.log('done!')
+    })
 }

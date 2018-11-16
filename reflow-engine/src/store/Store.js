@@ -46,10 +46,12 @@ class Store {
     return this.reduxStore.subscribe(...args)
   }
 
-  getDerivedState (opts = {}) {
-    return {
-      program: this.selectors.derivedProgram(this.getRawState())
-    }
+  getProgram (opts = {}) {
+    return this.selectors.derivedProgram(this.getRawState())
+  }
+
+  getInputsByProcId (opts = {}) {
+    return this.selectors.inputsByProcId(this.getRawState())
   }
 
   getRawState () {
