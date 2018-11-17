@@ -1,4 +1,7 @@
+import _ from 'lodash'
+
 import ProgramEngine from './ProgramEngine.js'
+import { PacketTypes } from './constants.js'
 
 
 class SerDes {
@@ -6,14 +9,41 @@ class SerDes {
     const serialization = {}
     serialization.tickCount = program.tickCount
     serialization.packetCount = program.packetCount
-    serialization.procs = _.map(programEngine.getProcs(), (proc) => {
+    serialization.procs = _.mapValues(programEngine.getProcs(), (proc) => {
       this.serializeProc({proc})
     })
-    serialization.prevInputsByProcId = programEngine.prevInputsByProcId
+    serialization.prevInputsByProcId = _.mapValues(
+      programEngine.prevInputsByProcId,
+      (inputs) => _.mapValues(inputs, (packet) => {
+        return this.serializePacket(packet)
+      })
+    )
     serialization.wires = programEngine.wires
   }
 
   serializeProc ({proc}) {
+    if (! proc) { return proc }
+    const serializedProc = _.pick(proc, ['id', 'label', 'componentId'])
+    serializedProc.outputs = _.mapValues(outputs, (packet, key) => {
+      return this.serializePacket(packet)
+    })
+    serializedProc.state = (
+      (proc.component.serializeState)
+      ? proc.component.serializeState(proc.state) : proc.state
+    )
+    return serializedProc
+  }
+
+  serializePacket (packet) {
+    if (! packet) { return packet }
+    const serializedPacket = _.pick(packet, ['idx', 'type'])
+    if (packet.type === PacketTypes.DATA) {
+      serializedPacket.data = (
+        (packet.serializer)
+        ? packet.serializer(packet.data) : packet.data
+      )
+    }
+    return serializedPacket
   }
 
   async deserializeProgramEngine ({serializedProgramEngine}) {
