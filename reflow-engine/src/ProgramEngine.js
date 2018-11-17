@@ -36,9 +36,9 @@ class ProgramEngine {
   }
 
   async addProc (proc) {
-    const procWithComponent= {
+    const procWithComponent = {
+      component: await this.componentLibrary.get({key: proc.componentId}),
       ...proc,
-      component: await this.componentLibrary.get({key: proc.componentId})
     }
     await this._ensureProcTickFns({procs: [procWithComponent]})
     this.store.actions.proc.create(procWithComponent)

@@ -5,26 +5,38 @@ import { PacketTypes } from './constants.js'
 
 
 class SerDes {
-  serializeProgramEngine ({programEngine}) {
+  constructor () {
+    this._dataTypeHandlers = {}
+  }
+
+  registerSerDesForDataType ({dataType, serDes}) {
+    this._dataTypeHandlers[dataType] = serDes
+  }
+
+  serializeProgramEngine (programEngine) {
     const serialization = {}
-    serialization.tickCount = program.tickCount
-    serialization.packetCount = program.packetCount
-    serialization.procs = _.mapValues(programEngine.getProcs(), (proc) => {
-      this.serializeProc({proc})
-    })
+    serialization.tickCount = programEngine.tickCount
+    serialization.packetCount = programEngine.packetCount
     serialization.prevInputsByProcId = _.mapValues(
       programEngine.prevInputsByProcId,
-      (inputs) => _.mapValues(inputs, (packet) => {
-        return this.serializePacket(packet)
-      })
+      (inputsForProc) => {
+        return _.mapValues(inputsForProc, (packet) => {
+          return this.serializePacket(packet)
+        })
+      }
     )
-    serialization.wires = programEngine.wires
+    const program = programEngine.getProgram()
+    serialization.procs = _.mapValues(program.procs, (proc) => {
+      return this.serializeProc({proc})
+    })
+    serialization.wires = program.wires
+    return serialization
   }
 
   serializeProc ({proc}) {
     if (! proc) { return proc }
     const serializedProc = _.pick(proc, ['id', 'label', 'componentId'])
-    serializedProc.outputs = _.mapValues(outputs, (packet, key) => {
+    serializedProc.outputs = _.mapValues(proc.outputs, (packet, key) => {
       return this.serializePacket(packet)
     })
     serializedProc.state = (
@@ -36,12 +48,19 @@ class SerDes {
 
   serializePacket (packet) {
     if (! packet) { return packet }
-    const serializedPacket = _.pick(packet, ['idx', 'type'])
-    if (packet.type === PacketTypes.DATA) {
-      serializedPacket.data = (
-        (packet.serializer)
-        ? packet.serializer(packet.data) : packet.data
-      )
+    const serializedPacket = _.pick(packet, ['idx', 'packetType'])
+    if (packet.packetType === PacketTypes.DATA) {
+      serializedPacket.data = packet.data
+      if ('dataType' in packet) {
+        serializedPacket.dataType = packet.dataType
+        const serializeFn = _.get(
+          this._dataTypeHandlers,
+          [packet.dataType, 'serialize']
+        )
+        if (serializeFn) {
+          serializedPacket.data = serializeFn(packet.data)
+        }
+      }
     }
     return serializedPacket
   }
