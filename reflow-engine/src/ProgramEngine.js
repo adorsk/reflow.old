@@ -1,11 +1,8 @@
 import _ from 'lodash'
 
 import * as constants from './constants.js'
-import NoopComponent from './components/Noop.js'
 import Store from './store/Store.js'
 import ComponentLibrary from './ComponentLibrary.js'
-import SerDes from './SerDes.js'
-
 
 const Statuses = {
   RESOLVED: 'RESOLVED',
@@ -29,19 +26,31 @@ class ProgramEngine {
   _addRootProc () {
     this.addProc({
       id: constants.rootProcId,
-      component: NoopComponent.getInstance(),
       status: Statuses.RESOLVED,
       hidden: true,
     })
   }
 
   async addProc (proc) {
-    const procWithComponent = {
-      component: await this.componentLibrary.get({key: proc.componentId}),
-      ...proc,
+    if (!proc.component && proc.componentId) {
+      proc = {
+        ...proc,
+        component: await this.componentLibrary.get({key: proc.componentId})
+      }
     }
-    await this._ensureProcTickFns({procs: [procWithComponent]})
-    this.store.actions.proc.create(procWithComponent)
+    if (!proc.tickFn && proc.component && proc.component.getTickFn) {
+      proc = {
+        ...proc,
+        tickFn: await proc.component.getTickFn()
+      }
+    }
+    this.store.actions.proc.create(proc)
+  }
+
+  async resolveProcComponent (proc) {
+    if (!proc.component && proc.componentId) {
+      proc.component = await this.componentLibrary.get({key: proc.componentId})
+    }
   }
 
   addWire (wire) {
@@ -50,6 +59,14 @@ class ProgramEngine {
 
   getProgram () {
     return this.store.getProgram()
+  }
+
+  getProcs () {
+    return _.get(this.store.getProgram(), 'procs')
+  }
+
+  getWires () {
+    return _.get(this.store.getProgram(), 'wires')
   }
 
   updateProc ({id, updates}) {
@@ -97,7 +114,7 @@ class ProgramEngine {
         else { this._tick({program}) }
       }
       // The debounce is important: it allows us avoid infinite recursion
-      // by consolidating ticks. We only do the next tick when 
+      // by consolidating ticks. We only do the next tick when
       // state updates for the current tick have finished.
       this.store.subscribe(_.debounce(onStoreChange), 0)
       this._tick({program: this.getProgram()})
@@ -106,26 +123,9 @@ class ProgramEngine {
     return runPromise
   }
 
-  async _ensureProcTickFns({procs}) {
-    const tickFnPromises = _.values(procs).map(async (proc) => {
-      try {
-        const component = proc.component
-        if (component && component.getTickFn) {
-          proc.component.tickFn = await component.getTickFn()
-        }
-      } catch (e) {
-        throw new Error(
-          `Could not resolve tickFn for proc ${proc.id}.`
-          + ` Error was: ${e}`
-        )
-      }
-    })
-    return Promise.all(tickFnPromises)
-  }
-
-  _tick({program = {}}) {
+  _tick ({program = {}}) {
     console.debug('_tick', this.tickCount++)
-    if (! program) { return }
+    if (!program) { return }
     const prevInputsByProcId = this.store.getInputsByProcId()
     for (let proc of _.values(program.procs)) { this._tickProc({proc}) }
     if (!this._hasUnresolvedProcs({program})) {
@@ -142,15 +142,14 @@ class ProgramEngine {
   }
 
   _tickProc ({proc}) {
-    const tickFn = _.get(proc, ['component', 'tickFn'])
-    if (! tickFn) { return }
+    if (!proc.tickFn) { return }
     const inputs = _.get(proc, ['inputs'], {})
     const prevInputs = _.get(this.prevInputsByProcId, proc.id, {})
     const inputsUnchanged = (inputs.__version === prevInputs.__version)
     const isResolved = (proc.status === Statuses.RESOLVED)
     if (inputsUnchanged && isResolved) { return }
     this._updateProcStatus({procId: proc.id, status: Statuses.RUNNING})
-    tickFn({
+    proc.tickFn({
       inputs: {
         current: inputs,
         prev: prevInputs,
@@ -188,8 +187,8 @@ class ProgramEngine {
     const freshInputs = {}
     for (let key of _.keys(currentInputs)) {
       if (
-        (!(key in prevInputs))
-        || (_.get(currentInputs[key], 'idx') !== _.get(prevInputs[key], 'idx'))
+        (!(key in prevInputs)) ||
+        (_.get(currentInputs[key], 'idx') !== _.get(prevInputs[key], 'idx'))
       ) { freshInputs[key] = currentInputs[key] }
     }
     return freshInputs

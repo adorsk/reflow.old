@@ -13,8 +13,7 @@ const composeEnhancers = (
     (typeof window === 'object') &&
     window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
   )
-  ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({})
-  : redux.compose
+    ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({}) : redux.compose
 )
 
 class Store {
@@ -33,7 +32,7 @@ class Store {
       orm: orm.getEmptyState(),
       ...initialState,
     }
-    return redux.createStore(rootReducer, initialState, enhancer)
+    return redux.createStore(rootReducer, initialStateWithOrm, enhancer)
   }
 
   _createBoundActions () {
