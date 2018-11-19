@@ -3,6 +3,7 @@ import _ from 'lodash'
 import * as constants from './constants.js'
 import Store from './store/Store.js'
 import ComponentLibrary from './ComponentLibrary.js'
+import { ProgramEngineSerializer } from './Serializers.js'
 
 const Statuses = {
   RESOLVED: 'RESOLVED',
@@ -207,6 +208,16 @@ class ProgramEngine {
   _updateProcState ({procId, updates}) {
     return this.store.actions.proc.updateState({id: procId, updates: updates})
   }
+
+  serialize () {
+    const serializer = new ProgramEngineSerializer()
+    return serializer.serialize(this)
+  }
+}
+
+ProgramEngine.createFromSerialization = function (serialization) {
+    const serializer = new ProgramEngineSerializer()
+    return serializer.deserialize(serialization)
 }
 
 export default ProgramEngine
