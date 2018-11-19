@@ -8,7 +8,7 @@ import Proc from './Proc.js'
 import Wire from './Wire.js'
 
 
-class Program extends React.Component {
+class ProgramCanvas extends React.Component {
   constructor (props) {
     super(props)
     this.procRefs = {}
@@ -274,7 +274,7 @@ class Program extends React.Component {
           const procRef = this.procRefs[procId]
           mgr.avatar.positions.dest = mgr.getRelativePos(
             procRef.getPortHandlePagePos({portId}))
-          this.props.actions.addWire({
+          this.props.actions.programEditor.addWire({
             wire: {
               src: mgr.wireSrc,
               dest: {procId, portId}
@@ -333,7 +333,7 @@ class Program extends React.Component {
             const delta = avatar.pos[xy] - avatar.startPos[xy]
             return curValue + delta
           })
-          this.props.actions.updateProcUiState({
+          this.props.actions.programEditor.updateProcUiState({
             procId,
             updates: { position: nextPos }
           })
@@ -381,4 +381,4 @@ class Program extends React.Component {
   }
 }
 
-export default Program
+export default ProgramCanvas

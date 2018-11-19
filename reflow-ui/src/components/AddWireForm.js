@@ -78,7 +78,7 @@ class AddWireForm extends React.Component {
     const srcPort = selectedSrcOption.value
     const destPort = selectedDestOption.value
     if (! srcPort || ! destPort) { return }
-    this.props.actions.addWire({
+    this.props.actions.programEngine.addWire({
       wire: {
         src: {
           procId: srcPort.proc.id,

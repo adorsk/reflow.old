@@ -1,9 +1,8 @@
 import React from 'react'
 import { Container, Grid } from 'semantic-ui-react'
 
-import Program from './Program.js'
+import ProgramCanvas from './ProgramCanvas.js'
 import ComponentLibrary from './ComponentLibrary.js'
-import AddWireForm from './AddWireForm.js'
 
 class ProgramEditor extends React.Component {
   render () {
@@ -22,7 +21,7 @@ class ProgramEditor extends React.Component {
             <Grid.Row>
               <Grid.Column width={12}>
                 <div style={{height: '100%', width: '100%', position: 'relative'}}>
-                  {this._renderProgram()}
+                  {this._renderProgramCanvas()}
                 </div>
               </Grid.Column>
               <Grid.Column width={4}>
@@ -35,16 +34,11 @@ class ProgramEditor extends React.Component {
     )
   }
 
-  _renderAddWireForm () {
-    const { program, actions } = this.props
-    return (<AddWireForm program={program} actions={actions} />)
-  }
-
-  _renderProgram () {
-    const program = this.props.program
+  _renderProgramCanvas () {
+    const program = this.props.programEditorState.program
     if (! program) { return null }
     return (
-      <Program
+      <ProgramCanvas
         actions={this.props.actions}
         program={program}
         style={{
@@ -66,6 +60,12 @@ class ProgramEditor extends React.Component {
         componentLibrary={this.props.componentLibrary}
       />
     )
+  }
+
+  componentDidMount () {
+    if (!this.props.programEngine) {
+      this.props.actions.programEngine.loadProgramEngine()
+    }
   }
 }
 

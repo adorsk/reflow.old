@@ -1,7 +1,7 @@
 import * as redux from 'redux'
 import thunk from 'redux-thunk'
 
-import { rootReducer } from './reducers.js'
+import { rootReducer } from './reducers/root.js'
 
 const composeEnhancers = (
   (
@@ -18,8 +18,8 @@ export default function createStore(initialState) {
   // Hot reload
   if(process.env.NODE_ENV !== 'production') {
     if(module.hot) {
-      module.hot.accept('./reducers.js', () =>{
-        const newRootReducer = require('./reducers.js').rootReducer
+      module.hot.accept('./reducers/root.js', () =>{
+        const newRootReducer = require('./reducers/root.js').rootReducer
         store.replaceReducer(newRootReducer)
       })
     }

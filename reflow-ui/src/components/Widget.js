@@ -35,7 +35,7 @@ class Widget extends React.Component {
     this._widget = await component.createWidget({
       container: this.widgetContainerRef.current,
       updateProcOutputs: ({updates}) => {
-        this.props.actions.updateProcOutputs({
+        this.props.actions.programEngine.updateProcOutputs({
           procId: this.props.proc.id,
           updates
         })
@@ -45,7 +45,7 @@ class Widget extends React.Component {
   }
 
   _updateWidgetState ({updates}) {
-    this.props.actions.updateProcWidgetState({
+    this.props.actions.programEditor.updateProcWidgetState({
       procId: this.props.proc.id,
       updates
     })

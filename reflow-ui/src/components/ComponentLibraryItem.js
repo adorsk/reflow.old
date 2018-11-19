@@ -7,7 +7,7 @@ class ComponentLibraryItem extends React.Component {
     return (
       <div
         onClick={() => {
-          this.props.actions.addProcWithComponent({component})
+          this.props.actions.programEngine.addProcWithComponent({component})
         }}
       >
         <label>{component.label}</label>
