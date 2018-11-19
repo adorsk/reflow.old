@@ -32,18 +32,21 @@ actionCreators.addWire = ({wire}) => {
     engine.addWire(wire)
   }
 }
+actionCreators.setVersion = ({version}) => ({
+  type: actionTypes.setVersion,
+  payload: {version}
+})
 
 actionCreators.loadProgramEngine = () => {
   const thunk = async (dispatch, getState) => {
-    const programEngine = await createProgramEngine()
-    dispatch(actionCreators.setEngine({
-      engine: programEngine}))
+    const engine = await createProgramEngine()
+    dispatch(actionCreators.setEngine({engine}))
     const _setVersion = () => {
       dispatch(actionCreators.setVersion({
-        version: programEngine.store.getVersion()}))
+        version: engine.store.getVersion()}))
     }
-    programEngine.store.subscribe(_.debounce(_setVersion), 0)
-    programEngine.run()
+    engine.store.subscribe(_.debounce(_setVersion), 0)
+    engine.run()
   }
   return thunk
 }

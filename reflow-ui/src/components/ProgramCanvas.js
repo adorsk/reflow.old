@@ -24,8 +24,8 @@ class ProgramCanvas extends React.Component {
   }
 
   render () {
-    const { program, style } = this.props
-    if (! program) { return null } 
+    const { programEngine, style } = this.props
+    if (! programEngine) { return null } 
     return (
       <div
         ref={this.progContainerRef}
@@ -39,8 +39,8 @@ class ProgramCanvas extends React.Component {
             width: '100%',
           }}
         >
-          {this.renderProcs({procs: program.procs})}
-          {this.renderWires({wires: program.wires})}
+          {this.renderProcs({procs: programEngine.getProcs()})}
+          {this.renderWires({wires: programEngine.getWires()})}
         </div>
       </div>
     )
@@ -97,16 +97,26 @@ class ProgramCanvas extends React.Component {
   }
 
   renderProc ({proc}) {
-    const uiState = _.get(proc, ['uiState'], {})
+    const frameState = _.get(
+      this.props.programEditorState,
+      ['procFrameStates', proc.id],
+      {}
+    )
+    const widgetState = _.get(
+      this.props.programEditorState,
+      ['procWidgetStates', proc.id],
+      {}
+    )
     return (
       <Proc
         key={proc.id}
         proc={proc}
+        widgetState={widgetState}
         actions={this.props.actions}
         style={{
           position: 'absolute',
-          left: _.get(uiState, ['position', 'x'], 0),
-          top: _.get(uiState, ['position', 'y'], 0),
+          left: _.get(frameState, ['position', 'x'], 0),
+          top: _.get(frameState, ['position', 'y'], 0),
         }}
         afterMount={(el) => { this.procRefs[proc.id] = el }}
         beforeUnmount={() => {
@@ -274,7 +284,7 @@ class ProgramCanvas extends React.Component {
           const procRef = this.procRefs[procId]
           mgr.avatar.positions.dest = mgr.getRelativePos(
             procRef.getPortHandlePagePos({portId}))
-          this.props.actions.programEditor.addWire({
+          this.props.actions.programEngine.addWire({
             wire: {
               src: mgr.wireSrc,
               dest: {procId, portId}
@@ -324,16 +334,17 @@ class ProgramCanvas extends React.Component {
           this._procDragMgr.avatar.startPos = startPos
         },
         onend: () => {
-          const currentPos = (
-            this.props.program.procs[procId].uiState.position
-            || {x: 0, y: 0}
+          const currentPos = _.get(
+            this.props.programEditorState,
+            ['procFrameStates',procId, 'position'],
+            {x: 0, y: 0}
           )
           const avatar = this._procDragMgr.avatar
           const nextPos = _.mapValues(currentPos, (curValue, xy) => {
             const delta = avatar.pos[xy] - avatar.startPos[xy]
             return curValue + delta
           })
-          this.props.actions.programEditor.updateProcUiState({
+          this.props.actions.programEditor.updateProcFrameState({
             procId,
             updates: { position: nextPos }
           })
@@ -348,19 +359,19 @@ class ProgramCanvas extends React.Component {
   }
 
   _updateWires () {
-    if (! this.props.program) { return }
-    this._updateWireRegistry()
-    this._updateWirePaths()
+    if (! this.props.programEngine) { return }
+    const wires = this.props.programEngine.getWires()
+    this._updateWireRegistry({wires})
+    this._updateWirePaths({wires})
   }
 
-  _updateWireRegistry () {
-    const wires = this.props.program.wires
+  _updateWireRegistry ({wires}) {
     this._wiresFromProc = _.groupBy(wires, _.property(['src', 'procId']))
     this._wiresToProc = _.groupBy(wires, _.property(['dest', 'procId']))
   }
 
-  _updateWirePaths () {
-    _.each(this.props.program.wires, (wire) => {
+  _updateWirePaths ({wires}) {
+    _.each(wires, (wire) => {
       const { src, dest } = wire
       const srcProcRef = this.procRefs[src.procId]
       const destProcRef = this.procRefs[dest.procId]

@@ -35,12 +35,13 @@ class ProgramEditor extends React.Component {
   }
 
   _renderProgramCanvas () {
-    const program = this.props.programEditorState.program
-    if (! program) { return null }
+    const programEngine = this.props.programEngine.engine
+    if (! programEngine) { return null }
     return (
       <ProgramCanvas
         actions={this.props.actions}
-        program={program}
+        programEngine={programEngine}
+        programEditorState={this.props.programEditor}
         style={{
           position: 'absolute',
           left: 0,
@@ -63,7 +64,7 @@ class ProgramEditor extends React.Component {
   }
 
   componentDidMount () {
-    if (!this.props.programEngine) {
+    if (!this.props.programEngine.engine) {
       this.props.actions.programEngine.loadProgramEngine()
     }
   }

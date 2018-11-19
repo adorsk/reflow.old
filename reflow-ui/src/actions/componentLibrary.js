@@ -9,7 +9,7 @@ actionCreators.updateComponentLibrary = ({updates}) => ({
 })
 actionCreators.loadComponentLibrary = () => {
   return async (dispatch) => {
-    const libraryModule = await import('./reflowComponents/library.js')
+    const libraryModule = await import('../reflowComponents/library.js')
     dispatch(actionCreators.updateComponentLibrary({
       updates: { components: libraryModule.components }
     }))

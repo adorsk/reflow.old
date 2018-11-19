@@ -55,17 +55,13 @@ class ProgramEngine {
     }
   }
 
-  getProgram () {
-    return this.store.getProgram()
-  }
+  getProgram () { return this.store.getProgram() }
 
-  getProcs () {
-    return this.store.getProcs()
-  }
+  getProcs () { return this.store.getProcs() }
 
-  getWires () {
-    return this.store.getWires()
-  }
+  getWires () { return this.store.getWires() }
+
+  getVersion () { return this.store.getVersion() }
 
   addWire (wire) {
     this.store.actions.wire.create(wire)
@@ -112,7 +108,7 @@ class ProgramEngine {
         if (maxTicks && this.tickCount > maxTicks) {
           throw new Error('exceeded max ticks')
         }
-        if (program.status === Statuses.RESOLVED) { resolve() }
+        if (program.status === Statuses.RESOLVED) { resolve(this) }
         else { this._tick() }
       }
       // The debounce is important: it allows us avoid infinite recursion

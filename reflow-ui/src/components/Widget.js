@@ -8,14 +8,14 @@ class Widget extends React.Component {
   }
 
   render () {
-    const proc = this.props.proc
+    const widgetState = this.props.widgetState
     return (
       <div>
         widget!
         <div ref={this.widgetContainerRef}>
           <label>widgetState</label>
           <code>
-            {JSON.stringify(proc.widgetState, null, 2)}
+            {JSON.stringify(widgetState, null, 2)}
           </code>
         </div>
       </div>

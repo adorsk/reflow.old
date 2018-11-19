@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import _ from 'lodash'
 
-import { actionCreators } from './actions.js'
+import { actionCreators } from './actions/index.js'
 import ProgramEditor from './components/ProgramEditor.js'
 
 
@@ -20,7 +20,8 @@ class App extends React.Component {
     return (
       <ProgramEditor
         actions={this.props.actions}
-        programEditorState={this.props.programEditorState}
+        programEngine={this.props.programEngine}
+        programEditor={this.props.programEditor}
         componentLibrary={this.props.componentLibrary}
       />
     )
@@ -35,7 +36,8 @@ class App extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    programEditorState: state.programEditor,
+    programEditor: state.programEditor,
+    programEngine: state.programEngine,
     componentLibrary: state.componentLibrary,
   }
 }
@@ -43,7 +45,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     actions: _.mapValues(actionCreators, (actionCreatorsForKey) => {
-      bindActionCreators(actionCreatorsForKey, dispatch)
+      return bindActionCreators(actionCreatorsForKey, dispatch)
     })
   }
 }

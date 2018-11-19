@@ -1,11 +1,11 @@
 export const actionTypes = {
-  updateProcUiState: 'programEditor:updateProcUiState',
+  updateProcFrameState: 'programEditor:updateProcFrameState',
   updateProcWidgetState: 'programEditor:updateProcWidgetState',
 }
 
 export const actionCreators = {}
-actionCreators.updateProcUiState = ({procId, updates}) => ({
-  type: actionTypes.updateProcUiState,
+actionCreators.updateProcFrameState = ({procId, updates}) => ({
+  type: actionTypes.updateProcFrameState,
   payload: {procId, updates}
 })
 actionCreators.updateProcWidgetState = ({procId, updates}) => ({

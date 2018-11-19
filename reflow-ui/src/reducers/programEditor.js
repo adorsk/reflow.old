@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { actionTypes } from '../actions/programEditor.js'
 
 export const programEditorReducer = (state = {}, action) => {
@@ -8,7 +9,10 @@ export const programEditorReducer = (state = {}, action) => {
       ...state,
       procFrameStates: {
         ...state.procFrameStates,
-        [procId]: Object.assign({}, state.procFrameStates[procId], updates)
+        [procId]: {
+          ...(_.get(state, ['procFrameStates', procId], {})),
+          ...updates
+        }
       }
     }
   }
@@ -18,7 +22,10 @@ export const programEditorReducer = (state = {}, action) => {
       ...state,
       procWidgetStates: {
         ...state.procWidgetStates,
-        [procId]: Object.assign({}, state.procWidgetStates[procId], updates)
+        [procId]: {
+          ...(_.get(state, ['procWidgetStates', procId], {})),
+          ...updates
+        }
       }
     }
   }

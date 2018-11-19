@@ -108,7 +108,11 @@ class Proc extends React.Component {
       <div
         ref={this.widgetContainerRef}
         className='proc-widget-container'>
-        <Widget proc={proc} actions={this.props.actions} />
+        <Widget
+          proc={proc}
+          actions={this.props.actions}
+          widgetState={this.props.widgetState}
+        />
       </div>
     )
   }

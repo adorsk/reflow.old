@@ -83,4 +83,14 @@ selectors.inputsByProcId = createSelector(
   _selectInputsByProcId
 )
 
+selectors.procsWithInputs = createSelector(
+  selectors.procs,
+  selectors.inputsByProcId,
+  (procs, inputsByProcId) => {
+    return _.mapValues(procs, (proc, procId) => {
+      return {...proc, inputs: _.get(inputsByProcId, procId)}
+    })
+  }
+)
+
 export default selectors

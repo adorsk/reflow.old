@@ -27,9 +27,14 @@ class Store {
 
   _createReduxStore ({initialState = {}}) {
     const enhancer = composeEnhancers(redux.applyMiddleware(thunk))
-    const rootReducer = redux.combineReducers({ orm: createReducer(orm) })
+    let versionIdx = 0
+    const rootReducer = redux.combineReducers({
+      orm: createReducer(orm),
+      version: (versionState) => versionState += 1
+    })
     const initialStateWithOrm = {
       orm: orm.getEmptyState(),
+      version: 0,
       ...initialState,
     }
     return redux.createStore(rootReducer, initialStateWithOrm, enhancer)
@@ -54,11 +59,15 @@ class Store {
   }
 
   getProcs (opts = {}) {
-    return this.selectors.procs(this.getRawState())
+    return this.selectors.procsWithInputs(this.getRawState())
   }
 
   getWires (opts = {}) {
     return this.selectors.wires(this.getRawState())
+  }
+  
+  getVersion (opts = {}) {
+    return this.getRawState().version
   }
 
   getInputsByProcId (opts = {}) {

@@ -9,7 +9,7 @@ export const actionTypes = {
 }
 
 export const actionCreators = {
-  programEngine: programEngineActions..actionCreators,
+  programEngine: programEngineActions.actionCreators,
   programEditor: programEditorActions.actionCreators,
   componentLibrary: componentLibraryActions.actionCreators,
 }
