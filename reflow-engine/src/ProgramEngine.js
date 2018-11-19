@@ -22,6 +22,7 @@ class ProgramEngine {
   }
 
   _createStore () { return new Store() }
+
   _createComponentLibrary () { return new ComponentLibrary() }
 
   _addRootProc () {
@@ -54,20 +55,20 @@ class ProgramEngine {
     }
   }
 
-  addWire (wire) {
-    this.store.actions.wire.create(wire)
-  }
-
   getProgram () {
     return this.store.getProgram()
   }
 
   getProcs () {
-    return _.get(this.store.getProgram(), 'procs')
+    return this.store.getProcs()
   }
 
   getWires () {
-    return _.get(this.store.getProgram(), 'wires')
+    return this.store.getWires()
+  }
+
+  addWire (wire) {
+    this.store.actions.wire.create(wire)
   }
 
   updateProc ({id, updates}) {
@@ -112,49 +113,52 @@ class ProgramEngine {
           throw new Error('exceeded max ticks')
         }
         if (program.status === Statuses.RESOLVED) { resolve() }
-        else { this._tick({program}) }
+        else { this._tick() }
       }
       // The debounce is important: it allows us avoid infinite recursion
       // by consolidating ticks. We only do the next tick when
       // state updates for the current tick have finished.
       this.store.subscribe(_.debounce(onStoreChange), 0)
-      this._tick({program: this.getProgram()})
+      this._tick()
     })
-    this._tick({program: this.getProgram()}) // initial tick
+    this._tick() // initial tick
     return runPromise
   }
 
-  _tick ({program = {}}) {
+  _tick () {
     console.debug('_tick', this.tickCount++)
+    const program = this.getProgram()
     if (!program) { return }
-    const prevInputsByProcId = this.store.getInputsByProcId()
-    for (let proc of _.values(program.procs)) { this._tickProc({proc}) }
-    if (!this._hasUnresolvedProcs({program})) {
+    const procs = this.getProcs()
+    const currentInputsByProcId = this.store.getInputsByProcId()
+    for (let proc of _.values(procs)) {
+      this._tickProc({proc, currentInputsByProcId})
+    }
+    const hasUnresolvedProcs = _.some(procs, (proc) => {
+      return (proc.status !== Statuses.RESOLVED)
+    })
+    if (!hasUnresolvedProcs) {
       this.store.actions.program.update({
         id: program.id,
         updates: { status: Statuses.RESOLVED }
       })
     }
-    this.prevInputsByProcId = prevInputsByProcId
+    this.prevInputsByProcId = currentInputsByProcId
   }
 
-  _hasUnresolvedProcs ({program}) {
-    return _.some(program.procs, (proc) => (proc.status !== Statuses.RESOLVED))
-  }
-
-  _tickProc ({proc}) {
+  _tickProc ({proc, currentInputsByProcId}) {
     if (!proc.tickFn) { return }
-    const inputs = _.get(proc, ['inputs'], {})
+    const currentInputs = _.get(currentInputsByProcId, proc.id, {})
     const prevInputs = _.get(this.prevInputsByProcId, proc.id, {})
-    const inputsUnchanged = (inputs.__version === prevInputs.__version)
+    const inputsUnchanged = (currentInputs.__version === prevInputs.__version)
     const isResolved = (proc.status === Statuses.RESOLVED)
     if (inputsUnchanged && isResolved) { return }
     this._updateProcStatus({procId: proc.id, status: Statuses.RUNNING})
     proc.tickFn({
       inputs: {
-        current: inputs,
+        current: currentInputs,
         prev: prevInputs,
-        fresh: this._computeFreshInputs({currentInputs: inputs, prevInputs}),
+        fresh: this._computeFreshInputs({currentInputs, prevInputs}),
       },
       state: _.get(proc, ['state'], {}),
       actions: {
@@ -196,7 +200,7 @@ class ProgramEngine {
   }
 
   _sanitizePacket (packet) {
-    if (packet && !packet.packetType) {
+    if (!packet || !packet.packetType) {
       packet = {
         packetType: constants.PacketTypes.DATA,
         data: packet

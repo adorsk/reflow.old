@@ -17,9 +17,7 @@ const _modelsToRefs = (models) => _.mapValues(models, (model) => model.ref)
 
 selectors.program = createSelector(
   _ormSelector,
-  ormCreateSelector(orm, (session) => {
-    return session.Program.first().ref
-  })
+  ormCreateSelector(orm, (session) => session.Program.first().ref)
 )
 
 selectors.procs = createSelector(
@@ -83,27 +81,6 @@ selectors.inputsByProcId = createSelector(
   selectors.wiresByDestProcId,
   selectors.outputsByProcId,
   _selectInputsByProcId
-)
-
-selectors.derivedProgram = createSelector(
-  selectors.program,
-  selectors.procs,
-  selectors.wires,
-  selectors.outputsByProcId,
-  selectors.inputsByProcId,
-  (program, procs, wires, outputsByProcId, inputsByProcId) => {
-    return {
-      ...program,
-      procs: _.mapValues(procs, (proc) => {
-        return {
-          ...proc,
-          inputs: _.get(inputsByProcId, proc.id, {}),
-          outputs: _.get(outputsByProcId, proc.id, {}),
-        }
-      }),
-      wires,
-    }
-  }
 )
 
 export default selectors

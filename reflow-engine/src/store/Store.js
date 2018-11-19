@@ -45,16 +45,24 @@ class Store {
     return this.reduxStore.subscribe(...args)
   }
 
+  getRawState () {
+    return this.reduxStore.getState()
+  }
+
   getProgram (opts = {}) {
-    return this.selectors.derivedProgram(this.getRawState())
+    return this.selectors.program(this.getRawState())
+  }
+
+  getProcs (opts = {}) {
+    return this.selectors.procs(this.getRawState())
+  }
+
+  getWires (opts = {}) {
+    return this.selectors.wires(this.getRawState())
   }
 
   getInputsByProcId (opts = {}) {
     return this.selectors.inputsByProcId(this.getRawState())
-  }
-
-  getRawState () {
-    return this.reduxStore.getState()
   }
 }
 
