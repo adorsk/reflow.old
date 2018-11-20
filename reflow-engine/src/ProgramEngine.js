@@ -90,12 +90,15 @@ class ProgramEngine {
   }
 
   updateProcOutputs ({procId, updates}) {
-    const updatesWithIdxs = _.mapValues(updates, (packet) => {
-      return {packet: {...packet, idx: this.packetCount++}}
+    const sanitizedAndIndexedUpdates = _.mapValues(updates, (packet) => {
+      return {
+        ...(this._sanitizePacket(packet)),
+        idx: this.packetCount++
+      }
     })
     return this.store.actions.proc.updateOutputs({
       id: procId,
-      updates: updatesWithIdxs
+      updates: sanitizedAndIndexedUpdates,
     })
   }
 
@@ -158,13 +161,8 @@ class ProgramEngine {
       },
       state: _.get(proc, ['state'], {}),
       actions: {
-        updateOutputs: (packetsByPort) => {
-          this.updateProcOutputs({
-            procId: proc.id,
-            updates: _.mapValues(packetsByPort, (packet) => {
-              return this._sanitizePacket(packet)
-            })
-          })
+        updateOutputs: (updates) => {
+          this.updateProcOutputs({procId: proc.id, updates})
         },
         resolve: () => {
           this._updateProcStatus({procId: proc.id, status: Statuses.RESOLVED})

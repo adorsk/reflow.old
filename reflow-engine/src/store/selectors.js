@@ -58,10 +58,7 @@ const _selectInputsForProc = ({procId, incomingWires, outputsByProcId}) => {
   _.each(incomingWiresByPortId, (incomingWires, portId) => {
     const packets = []
     for (let wire of incomingWires) {
-      const packet = _.get(
-        outputsByProcId,
-        [wire.src.procId, wire.src.portId, 'packet']
-      )
+      const packet = _.get(outputsByProcId, [wire.src.procId, wire.src.portId])
       if (packet) { packets.push(packet) }
     }
     const newestPacket = _.maxBy(packets, 'idx')

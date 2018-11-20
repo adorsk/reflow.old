@@ -54,23 +54,23 @@ class Store {
     return this.reduxStore.getState()
   }
 
-  getProgram (opts = {}) {
+  getProgram () {
     return this.selectors.program(this.getRawState())
   }
 
-  getProcs (opts = {}) {
+  getProcs () {
     return this.selectors.procsWithInputs(this.getRawState())
   }
 
-  getWires (opts = {}) {
+  getWires () {
     return this.selectors.wires(this.getRawState())
   }
   
-  getVersion (opts = {}) {
+  getVersion () {
     return this.getRawState().version
   }
 
-  getInputsByProcId (opts = {}) {
+  getInputsByProcId () {
     return this.selectors.inputsByProcId(this.getRawState())
   }
 }
