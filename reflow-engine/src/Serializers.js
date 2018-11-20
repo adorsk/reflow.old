@@ -8,23 +8,23 @@ export class ProgramEngineSerializer {
     this._dataTypeHandlers = {}
   }
 
-  serialize (programEngine) {
+  serialize (engine) {
     const serialization = {}
-    serialization.tickCount = programEngine.tickCount
-    serialization.packetCount = programEngine.packetCount
+    serialization.tickCount = engine.tickCount
+    serialization.packetCount = engine.packetCount
     serialization.prevInputsByProcId = _.mapValues(
-      programEngine.prevInputsByProcId,
+      engine.prevInputsByProcId,
       (inputsForProc) => {
         return _.mapValues(inputsForProc, (packet) => {
           return this.serializePacket(packet)
         })
       }
     )
-    const program = programEngine.getProgram()
-    serialization.procs = _.mapValues(program.procs, (proc) => {
+    serialization.program = engine.getProgram()
+    serialization.procs = _.mapValues(engine.getProcs(), (proc) => {
       return this.serializeProc({proc})
     })
-    serialization.wires = program.wires
+    serialization.wires = engine.getWires()
     return serialization
   }
 

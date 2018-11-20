@@ -16,6 +16,6 @@
     "mocha": "^5.2.0"
   },
   "scripts": {
-    "test": "mocha -r esm src/**/*.tests.js"
+    "test": "mocha -r esm src/**/*.test.js"
   }
 }

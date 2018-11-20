@@ -2,10 +2,10 @@
 import { assert } from 'chai'
 import _ from 'lodash'
 
-import { ProgramEngineSerializer } from './Serializers.js'
-import ProgramEngine from './ProgramEngine.js'
-import ComponentLibrary from './ComponentLibrary.js'
-import * as constants from './constants.js'
+import { ProgramEngineSerializer } from '../Serializers.js'
+import ProgramEngine from '../ProgramEngine.js'
+import ComponentLibrary from '../ComponentLibrary.js'
+import * as constants from '../constants.js'
 
 describe('ProgramEngineSerializer', () => {
   const getFixtures = async () => {
@@ -83,6 +83,9 @@ describe('ProgramEngineSerializer', () => {
       return progEng
     })()
     fixtures.serialization = {
+      program: {
+        id: 'mainProgram'
+      },
       tickCount: 42,
       packetCount: 4242,
       prevInputsByProcId: {
