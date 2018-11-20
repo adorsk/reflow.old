@@ -2,6 +2,7 @@ import React from 'react'
 import _ from 'lodash'
 import { Container, Grid } from 'semantic-ui-react'
 import FileSaver from 'file-saver'
+import ProgramEngine from 'reflow-engine/src/ProgramEngine.js'
 
 import ProgramCanvas from './ProgramCanvas.js'
 import ComponentLibrary from './ComponentLibrary.js'
@@ -78,11 +79,13 @@ class ProgramEditor extends React.Component {
   }
 
   componentDidMount () {
-    /*
     if (!this.props.programEngine.engine) {
-      this.props.actions.programEngine.loadProgramEngine()
+      this.props.actions.programEngine.setEngine({
+        engine: new ProgramEngine({
+          componentLibrary: this.props.componentLibrary
+        })
+      })
     }
-    */
   }
 
   save () {
@@ -113,13 +116,13 @@ class ProgramEditor extends React.Component {
         serialization,
         componentLibrary: _.get(this.props.componentLibrary, 'componentLibrary')
       })
-      console.log('yo')
       this.props.actions.programEngine.setEngine({
         engine: deserialized.programEngine})
       this.props.actions.programEditor.setProcFrameStates(
         deserialized.frameStates)
       this.props.actions.programEditor.setProcWidgetStates(
         deserialized.widgetStates)
+      this.uploadInputRef.current.value = null
     }
     reader.readAsText(this.uploadInputRef.current.files[0])
   }

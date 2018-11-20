@@ -12,6 +12,7 @@ const Statuses = {
 
 class ProgramEngine {
   constructor (opts = {}) {
+    this.id = (new Date()).getTime() / 1000
     this.store = opts.store || this._createStore()
     this.componentLibrary = opts.componentLibrary || this._createComponentLibrary()
     this.store.actions.program.create({id: 'mainProgram'})

@@ -22,7 +22,7 @@ export class Proc extends Model {
     const { payload, type } = action
     if (type === actionTypes.proc.create) {
       Proc.create({
-        id: ((payload.id === undefined) ? _.uniqueId('proc:') : payload.id),
+        id: ((payload.id === undefined) ? utils.uuid4() : payload.id),
         outputs: {},
         state: {},
         ...payload

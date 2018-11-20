@@ -13,12 +13,12 @@ class ProgramCanvas extends React.Component {
     super(props)
     this.procRefs = {}
     this.wireRefs = {}
+    this._wiresFromProc = {}
+    this._wiresToProc = {}
     this.progContainerRef = React.createRef()
     this.procAvatarRef = React.createRef()
     this.wiresContainerRef = React.createRef()
     this.wireAvatarRef = React.createRef()
-    this._wiresFromProc = {}
-    this._wiresToProc = {}
     this._procDragMgr = null
     this._wireDrawMgr = null
   }
@@ -44,26 +44,6 @@ class ProgramCanvas extends React.Component {
         </div>
       </div>
     )
-  }
-
-  _getPortInfos () {
-    const { program } = this.props
-    const portTypes = ['inputs', 'outputs']
-    const portInfos = {}
-    _.each(program.procs, (proc, procId) => {
-      for (let portType of portTypes) {
-        _.each(proc[portType].handles, (handle, handleId) => {
-          const infoId = [procId, portType, handleId].join(':')
-          portInfos[infoId] = {
-            id: infoId,
-            procId,
-            portType,
-            handle
-          }
-        })
-      }
-    })
-    return portInfos
   }
 
   _addWire ({src, dest}) {
@@ -309,6 +289,14 @@ class ProgramCanvas extends React.Component {
   componentDidUpdate (prevProps) {
     this._updateWires()
     this._updateProcs()
+  }
+
+  _resetRefs () {
+    console.log("resetRefs")
+    this.procRefs = {}
+    this.wireRefs = {}
+    this._wiresFromProc = {}
+    this._wiresToProc = {}
   }
 
   _updateProcs () {

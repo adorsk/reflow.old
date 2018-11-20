@@ -8,10 +8,23 @@ export const actionTypes = {
 }
 
 export const actionCreators = {}
-actionCreators.setEngine = ({engine}) => ({
-  type: actionTypes.setEngine,
-  payload: {engine}
-})
+actionCreators.setEngine = ({engine}) => {
+  const thunk = async (dispatch, getState) => {
+    const prevEngine = _.get(getState(), 'programEngine.engine')
+    if (prevEngine && prevEngine.destroy) { prevEngine.destroy() }
+    dispatch({
+      type: actionTypes.setEngine,
+      payload: {engine}
+    })
+    const _setVersion = () => {
+      dispatch(actionCreators.setVersion({
+        version: engine.store.getVersion()}))
+    }
+    engine.store.subscribe(_.debounce(_setVersion), 0)
+    engine.run()
+  }
+  return thunk
+}
 
 actionCreators.updateProcOutputs = ({procId, updates}) => {
   return (dispatch, getState) => {
@@ -22,7 +35,7 @@ actionCreators.updateProcOutputs = ({procId, updates}) => {
 actionCreators.addProcWithComponent = ({component}) => {
   return (dispatch, getState) => {
     const engine = getState().programEngine.engine
-    const proc = {component}
+    const proc = {componentId: component.id, component}
     engine.addProc(proc)
   }
 }
