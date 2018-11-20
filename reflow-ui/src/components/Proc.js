@@ -12,7 +12,7 @@ class Proc extends React.Component {
     this.portRefs = {}
     this.labelRef = React.createRef()
     this.containerRef = React.createRef()
-    this.widgetContainerRef = React.createRef()
+    this.widgetRef = React.createRef()
   }
 
   render () {
@@ -106,9 +106,9 @@ class Proc extends React.Component {
     const proc = this.props.proc
     return (
       <div
-        ref={this.widgetContainerRef}
         className='proc-widget-container'>
         <Widget
+          ref={this.widgetRef}
           proc={proc}
           actions={this.props.actions}
           widgetState={this.props.widgetState}
@@ -132,6 +132,10 @@ class Proc extends React.Component {
     const pagePos = getPagePos(handleEl)
     pagePos.y += (handleRect.height / 2)
     return pagePos
+  }
+
+  getWidget () {
+    return (this.widgetRef.current) ? this.widgetRef.current.getWidget() : null
   }
 }
 

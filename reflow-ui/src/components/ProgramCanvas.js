@@ -390,6 +390,10 @@ class ProgramCanvas extends React.Component {
       })
     })
   }
+
+  getWidgets () {
+    return _.mapValues(this.procRefs, (procRef) => procRef.getWidget())
+  }
 }
 
 export default ProgramCanvas

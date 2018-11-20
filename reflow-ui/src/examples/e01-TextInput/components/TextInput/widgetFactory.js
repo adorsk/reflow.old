@@ -20,7 +20,7 @@ class WidgetFactory {
       container,
       onChange: (value) => {
         updateProcOutputs({
-          updates: {OUT: { packet: {data: value}}}
+          updates: {OUT: value}
         })
       }
     })

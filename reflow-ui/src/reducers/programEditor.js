@@ -16,6 +16,9 @@ export const programEditorReducer = (state = {}, action) => {
       }
     }
   }
+  if (type === actionTypes.setProcFrameStates) {
+    state = {...state, procFrameStates: payload}
+  }
   else if (type === actionTypes.updateProcWidgetState) {
     const { procId, updates } = payload
     state = {
@@ -28,6 +31,9 @@ export const programEditorReducer = (state = {}, action) => {
         }
       }
     }
+  }
+  if (type === actionTypes.setProcWidgetStates) {
+    state = {...state, procWidgetStates: payload}
   }
   return state
 }

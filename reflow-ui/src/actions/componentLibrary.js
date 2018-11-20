@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 export const actionTypes = {
   updateComponentLibrary: 'componentLibrary:updateComponentLibrary'
 }
@@ -11,7 +13,7 @@ actionCreators.loadComponentLibrary = () => {
   return async (dispatch) => {
     const libraryModule = await import('../reflowComponents/library.js')
     dispatch(actionCreators.updateComponentLibrary({
-      updates: { components: libraryModule.components }
+      updates: _.keyBy(libraryModule.components, 'id')
     }))
   }
 }

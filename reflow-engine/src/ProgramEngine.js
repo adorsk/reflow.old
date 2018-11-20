@@ -211,11 +211,13 @@ class ProgramEngine {
     const serializer = new ProgramEngineSerializer()
     return serializer.serialize(this)
   }
+
+  destroy () { console.warn('destroy: NotYetImplemented') }
 }
 
-ProgramEngine.createFromSerialization = function (serialization) {
+ProgramEngine.createFromSerialization = ({serialization, componentLibrary}) => {
     const serializer = new ProgramEngineSerializer()
-    return serializer.deserialize(serialization)
+    return serializer.deserialize({serialization, componentLibrary})
 }
 
 export default ProgramEngine

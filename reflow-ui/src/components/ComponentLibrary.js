@@ -14,8 +14,12 @@ class ComponentLibrary extends React.Component {
   }
 
   _renderComponentLibraryItems () {
-    const components = _.get(this.props.componentLibrary, 'components', [])
-    return components.map((component) => this._renderComponentLibraryItem({component}))
+    // ick. refactor this.
+    const componentLibrary = _.get(
+      this.props.componentLibrary, 'componentLibrary')
+    if (!componentLibrary || !componentLibrary.getComponents) { return }
+    const components = componentLibrary.getComponents()
+    return _.map(components, (component) => this._renderComponentLibraryItem({component}))
   }
 
   _renderComponentLibraryItem ({component}) {

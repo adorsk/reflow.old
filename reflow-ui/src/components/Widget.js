@@ -32,7 +32,7 @@ class Widget extends React.Component {
       this._updateWidgetState({updates: {status: 'NO_WIDGET'}})
       return
     }
-    this._widget = await component.createWidget({
+    this.widget = await component.createWidget({
       container: this.widgetContainerRef.current,
       updateProcOutputs: ({updates}) => {
         this.props.actions.programEngine.updateProcOutputs({
@@ -56,9 +56,11 @@ class Widget extends React.Component {
   }
 
   _updateWidget () {
-    if (!this._widget || !this._widget.update) { return }
-    this._widget.update({proc: this.props.proc})
+    if (!this.widget || !this.widget.update) { return }
+    this.widget.update({proc: this.props.proc})
   }
+
+  getWidget () { return this.widget }
 }
 
 export default Widget

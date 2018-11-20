@@ -17,18 +17,21 @@ class Serializer {
     return serialized
   }
 
-  async deserialize (serialization) {
+  async deserialize ({serialization, componentLibrary}) {
     const deserialized = {
-      programEngine: await this.deserializeProgramEngine(
-        serialization.programEngine),
+      programEngine: await this.deserializeProgramEngine({
+        serialization: serialization.programEngine,
+        componentLibrary,
+      }),
       frameStates: serialization.frameStates,
       widgetStates: serialization.widgetStates,
     }
     return deserialized
   }
 
-  async deserializeProgramEngine (serialization) {
-    return await ProgramEngine.createFromSerialization(serialization)
+  async deserializeProgramEngine ({serialization, componentLibrary}) {
+    return await ProgramEngine.createFromSerialization({
+      serialization, componentLibrary})
   }
 }
 
